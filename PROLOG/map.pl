@@ -5,7 +5,7 @@
 :- dynamic you_are_at/1, land/2, disembarked.
 
 you_are_at(open_sea).
-disembarked :- fail;
+disembarked :- fail.
 
 % MAP AND MOVEMENT CHART
 

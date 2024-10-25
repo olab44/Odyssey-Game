@@ -5,4 +5,4 @@
 :- dynamic crew/1, dead/1.
 
 crew(600).
-dead(Crewmate) :- fail.
+dead(_) :- fail.
