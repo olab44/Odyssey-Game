@@ -2,7 +2,7 @@
 /* THE ODYSSEY : THE GAME                             */
 /* Aleksandra Buczma, Zofia Jasina, Marcin Bagnowski  */
 
-:- dynamic you_are_at/1, land/2, disembarked.
+:- dynamic you_are_at/1, land/2, disembarked/0.
 
 you_are_at(open_sea).
 
