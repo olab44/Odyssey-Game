@@ -2,7 +2,8 @@
 /* THE ODYSSEY : THE GAME                             */
 /* Aleksandra Buczma, Zofia Jasina, Marcin Bagnowski  */
 
-:- [map], [objects], [plot], [characters].
+:- [act_I/open_sea], [act_I/ithaca_sea], [act_I/lotus_sea], [act_I/polyphemus_sea].
+:- [exploration].
 
 welcome :- nl,
         ansi_format([fg(green)], '---------------------- THE ODYSSEY : THE GAME ----------------------', []), nl,
@@ -30,12 +31,23 @@ welcome :- nl,
 instructions :-
         ansi_format([fg(green)], '--------------------------------------------------------------------', []), nl,
         write("Add instructions later"), nl,
-        ansi_format([fg(yellow)], 'Use "start." command to play the game.', []), nl,
+        ansi_format([fg(yellow)], 'Use "start." command to play the game or "halt." to close it.', []), nl,
         ansi_format([fg(green)], '--------------------------------------------------------------------', []), nl.
 
 :- welcome, instructions.
 
-start :- plot_start.
+start :-
+        write("\nThe city of Troy has been seized, the war won. Ten years away from home are finally coming to"),
+        write("\nan end. You're on your way to Ithaca now, hundreds of sea miles both behind and ahead of you."),
+        write("\nThe problem's not the distance, you know very well, but the dangers that lie in between"),
+        write("\n- you'll have to act smart to get back to your homeland.\n"),
+        write("\nYou think of your wife. You think of your little boy, who's probably not so little anymore.\n"),
+        write("\nFailure is not an option.\n"),
+        write("\nWith trusted"), ansi_format([fg(blue)], " crew ", []), write("by your side, the six hundred men under your command, there just might be"),
+        write("\nhope for you after all.\n"),
+        write("\nYou should"), ansi_format([fg(magenta)], " look ", []), write("around,"), ansi_format([fg(magenta)], " talk ", []),
+        write("to them while it's not busy or"), ansi_format([fg(magenta)], " sail ", []), write("to cross the sea and find your way home.\n").
+
 
 finish :- nl,
         ansi_format([fg(green)], '------------------------------ THE END -----------------------------', []), nl,
