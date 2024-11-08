@@ -3,6 +3,7 @@
 /* Aleksandra Buczma, Zofia Jasina, Marcin Bagnowski  */
 
 :- [act_I/open_sea], [act_I/ithaca_sea], [act_I/lotus_sea], [act_I/polyphemus_sea].
+:- [act_III/calypso_island], [act_III/ithaca], [act_III/sun_god_island].
 :- [exploration].
 
 welcome :- nl,
