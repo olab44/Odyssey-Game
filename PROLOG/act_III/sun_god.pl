@@ -1,6 +1,4 @@
-:- dynamic crew/1.
-
-you_are_at(sun_god_island).
+:- multifile crew/1, you_are_at/1.
 
 describe(sun_god_island) :-
     write("You have reached the sacred island of the Sun God, Helios. The land is strikingly serene, untouched by time\n"),
@@ -22,19 +20,18 @@ trigger_sun_god_wrath :-
     write("A voice booms from above, filling the heavens with fury and sorrow—it is the voice of Helios, the Sun God.\n"),
     write("He condemns the act, his voice echoing like thunder across the barren shores. Your men fall to their knees,\n"),
     write("but it is too late. Their fate is sealed.\n\n"),
-    crew(Count),
-    final_curse(Count).
+    retractall(crew(_)),
+    assert(crew(1)),
+    final_curse.
 
-final_curse(Count) :-
-    Count > 1,
-    retract(crew(Count)),
+final_curse :-
     write("One by one, your men meet their doom. The earth cracks beneath them, swallowing some into the darkness below,\n"),
     write("while others are struck down by bolts of divine fire. You stand helpless, witnessing the swift justice of the gods.\n\n"),
     write("When the storm finally passes, a heavy silence remains. All your men have perished, leaving you alone amidst\n"),
     write("the wreckage of what was once your crew. The weight of their lost lives presses upon you, but you know you must\n"),
-    write("continue, for their sacrifice cannot be in vain.\n"),
-    assert(crew(1)).
-final_curse(1) :-
-    write("The gods’ fury has left you as the lone survivor, a cursed witness to the folly of defying divine law.\n"),
-    write("The empty island seems to echo with the voices of your fallen crew, yet there is no comfort in their memory.\n"),
-    write("You are alone, the last to carry forth the hope of returning to Ithaca, though at a cost beyond measure.\n\n").
+    write("continue, for their sacrifice cannot be in vain.\n\n"),
+    transport_to_calypso_island.
+
+transport_to_calypso_island :-
+    assert(you_are_at(calypso_island)),
+    look.

@@ -22,6 +22,9 @@ sea_path(lotus_sea, east, open_sea).
 sea_path(polyphemus_sea, east, ithaca_sea).
 sea_path(polyphemus_sea, south, lotus_sea).
 
+% act III
+sea_path(scylla_charybdis, east, sun_god).
+
 land(lotus_sea, lotus_island).
 land(polyphemus_sea, polyphemus_cave).
 

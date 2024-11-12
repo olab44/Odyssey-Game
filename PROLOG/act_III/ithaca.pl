@@ -1,4 +1,4 @@
-you_are_at(ithaca).
+multifile you_are_at/1.
 
 describe(ithaca) :-
     write("At last, you set foot on Ithaca, your homeland.\n"),
@@ -19,8 +19,3 @@ end_message :-
     write("left its scars, but it has also strengthened your resolve.\n"),
     write("You’ve proven that courage and loyalty can overcome even the wrath of gods.\n"),
     write("Welcome home, Odysseus. Your story will echo through time as a testament to enduring hope.\n\n").
-
-finish :- nl,
-    ansi_format([fg(green)], '------------------------------ YOU HAVE REACHED ITHACA -----------------------------', []), nl,
-    ansi_format([fg(yellow)], 'Thank you for playing! Close the game with the "halt." command.', []), nl,
-    ansi_format([fg(green)], '--------------------------------------------------------------------', []), nl.

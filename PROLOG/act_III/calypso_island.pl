@@ -1,6 +1,4 @@
-:- dynamic holding/2, raft_step_completed/1.
-
-you_are_at(calypso_island).
+:- dynamic holding/2, raft_step_completed/1, you_are_at/1.
 
 % Materials for the raft
 required_material(wood, 5).     
@@ -67,12 +65,11 @@ build_raft :-
     \+ has_all_materials,
     write("You don't have enough materials to build the raft. Keep gathering.\n").
 
-% Attempt to escape
 attempt_escape :-
     raft_step_completed(mast),
     write("With your raft complete, you set out to sea, leaving Calypso's Island behind.\n"),
     retract(you_are_at(calypso_island)),
-    assert(you_are_at(open_sea)),
+    assert(you_are_at(ithaca)),
     look.
 attempt_escape :-
     write("You cannot leave without completing the raft first.\n").
