@@ -3,6 +3,8 @@
 /* Aleksandra Buczma, Zofia Jasina, Marcin Bagnowski  */
 
 :- [act_I/open_sea], [act_I/ithaca_sea], [act_I/lotus_sea], [act_I/polyphemus_sea].
+:- [act_II/circe_sea], [act_II/giants_sea], [act_II/scylla_charybdis], [act_II/sirens_sea], [act_II/sun_god_sea], [act_II/underworld_sea].
+:- [act_III/calypso_island].
 :- [exploration].
 
 welcome :- nl,
@@ -45,7 +47,8 @@ start :-
         write("\nFailure is not an option.\n"),
         write("\nWith trusted crew by your side, the six hundred men under your command, there just might be"),
         write("\nhope for you after all.\n"),
-        write("\nYou should look around, talk to them while it's not busy or sail to cross the sea and reach home.\n").
+        write("\nYou should look around, talk to them while it's not busy or sail to cross the sea and reach home.\n"),
+        write("You can also check the current size of your crew by typing crew_count.\n").
 
 finish :- nl,
         ansi_format([fg(green)], "------------------------------ THE END -----------------------------", []), nl,
