@@ -1,6 +1,7 @@
 :- multifile crew/1, you_are_at/1.
 
 describe(sun_god_island) :-
+    write("You have reached the mysterious island. ")
     write("You have reached the sacred island of the Sun God, Helios. The land is strikingly serene, untouched by time\n"),
     write("or mortal hands. As you and your crew disembark, an unsettling stillness hangs in the air, as if the island\n"),
     write("itself holds its breath. The familiar cries of seagulls and rush of the waves are absent here.\n\n"),
