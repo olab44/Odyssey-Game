@@ -8,9 +8,9 @@ describe(ithaca_sea) :- !,
         write("\ncalmer waters - but Ithaca's never been closer in the last ten years and the way home is through.").
 
 sail(Direction) :- you_are_at(ithaca_sea), Direction \= south, !,
-        plot(ithaca_sea_storm).
+        ithaca_sea_storm.
 
-plot(ithaca_sea_storm) :- holding(wind-bag), !,
+ithaca_sea_storm :- holding(wind-bag), !,
         write("\nWith the storm contained, it shouldn't take much longer to reach the coast. Mere weeks.\n"),
         write("\nYou wish you could relax now, but the wind gods' words won't let you. 'Be careful who you"),
         write("\ntrust, captain' pushes you to keep your eyes open at all times.\n"),
@@ -20,7 +20,7 @@ plot(ithaca_sea_storm) :- holding(wind-bag), !,
         write("\ncurrents leading you to distant shores far, far away from Ithaca."),
         retract(holding(wind-bag)),
         retract(you_are_at(ithaca_sea)), assert(you_are_at(circe_sea)).
-plot(ithaca_sea_storm) :- crew(X),
+ithaca_sea_storm :- crew(X),
         (X > 150 ->
                 write("\nIt turns out you can't beat the force of nature that easily. You lose ships - the screams of over"),
                 write("\na hundred men are drowned out by the storm as they disappear below the waves - just to end up where"),

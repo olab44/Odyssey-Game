@@ -47,10 +47,9 @@ sea_path(sirens_sea, south, scylla_charybdis_sea).
 sea_path(giants_sea, south, circe_sea).
 sea_path(scylla_charybdis_sea, east, sun_god_sea).
 sea_path(sun_god_sea, south, calypso_island).
-sea_path(open_sea, act_II, circe_sea).
+
 sea_path(circe_sea, west, underworld_sea) :-
     access_to_underworld(true).
-
 
 land(lotus_sea, lotus_island).
 land(polyphemus_sea, polyphemus_cave).
@@ -62,6 +61,11 @@ land(underworld_sea, underworld) :-
 
 % MOVEMENT
 
+sail(act_II) :- !,
+        retractall(you_are_at(_)), assert(you_are_at(circe_sea)).
+sail(act_III) :- !,
+        retractall(you_are_at(_)), assert(you_are_at(calypso_island)),
+        assert(disembarked).
 sail(_) :- disembarked, !,
         write("You should embark on a ship first.\n").
 sail(Direction) :- you_are_at(Here), sea_path(Here, Direction, There), !,
@@ -83,7 +87,7 @@ embark :- you_are_at(Land), land(Sea, Land), !,
         retract(you_are_at(Land)), assert(you_are_at(Sea)), retract(disembarked),
         look.
 embark :-
-        write("You're already on a ship.\n").
+        write("You're already on a ship or there's no ship at all.\n").
 
 unlock_underworld_access :-
     retractall(access_to_underworld(_)),

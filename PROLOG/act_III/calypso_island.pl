@@ -1,25 +1,21 @@
-<<<<<<< HEAD
 :- multifile describe/1.
-
-describe(calypso_island) :- !,
-	write("As you gather your strength, you realize you have arrived at the island of Calypso.\n").
-=======
 :- dynamic holding/2, raft_step_completed/1, you_are_at/1.
 
-required_material(wood, 2).     
-required_material(logs, 2).      
-required_material(rope, 2).      
-required_material(mast, 1).      
+required_material(wood, 2).
+required_material(logs, 2).
+required_material(rope, 2).
+required_material(mast, 1).
 
-describe(calypso_island) :-
-    write("You stand on the shores of an island. It it breathtaking but empty, nobody is to be seen. \n"),
-    write("The only sound is wind blowing through the wind. You are exhausted from all travels and you collapse on the ground\n"),
-    write("When you wake up, first thing you see is a woman, she must be a Goddess. When you ask her name she turns out to be calypso"),
+describe(calypso_island) :- !,
+    write("You stand on the shores of an island. It it breathtaking but empty, nobody is to be seen.\n"),
+    write("\nThe only sound is wind blowing through the wind. You are exhausted from all travels and you collapse on the ground.\n"),
+    write("When you wake up, first thing you see is a woman, she must be a Goddess. When you ask her name she turns out to be Calypso\n"),
     write("To leave this place, to return to the life you truly seek, you must craft a raft that can withstand Poseidon’s\n"),
     write("storms. Gather the resources of the island: wood, logs, rope and mast, only then will you be able to return to home").
 
-gather(Material) :-
-    you_are_at(calypso_island),
+gather(Material) :- required_material(Material, RequiredAmount), holding(Material, RequiredAmount), !,
+    format("You have enough ~w for the raft.\n", [Material]).
+gather(Material) :- you_are_at(calypso_island), required_material(X, _), !,
     required_material(Material, RequiredAmount),
     (holding(Material, CurrentAmount) -> true ; CurrentAmount = 0),
     NewAmount is CurrentAmount + 1,
@@ -30,10 +26,8 @@ gather(Material) :-
     (has_all_materials ->
         write("You have gathered all necessary materials for the raft! You can start building it.\n")
     ; true).
-gather(Material) :-
-    required_material(Material, RequiredAmount),
-    holding(Material, RequiredAmount),
-    format("You have enough ~w for the raft.\n", [Material]).
+gather(_) :-
+    write("There's no need to gather anything like that now.").
 
 has_all_materials :-
     forall(required_material(Material, Amount), holding(Material, Amount)).
@@ -66,8 +60,7 @@ build_raft :-
 attempt_escape :-
     raft_step_completed(mast),
     write("With your raft complete, you set out to sea, leaving Calypso's Island behind.\n"),
-    assert(you_are_at(ithaca)),
+    retractall(you_are_at(_)), assert(you_are_at(ithaca)),
     look.
 attempt_escape :-
     write("You cannot leave without completing the raft first.\n").
->>>>>>> 530f95d22847182e6bc55d377438a26d6a71ea2e

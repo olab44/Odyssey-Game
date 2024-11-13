@@ -54,7 +54,7 @@ plot(continue_journey) :-
         write("As you leave the island, a thunderous voice echoes: 'For your desecration, you shall be punished!'\n"),
         write("The sea rages as a powerful storm descends upon your ship.\n"),
         write("But with the Elixir of Strength, you manage to survive the ordeal and press on to the next challenge.\n\n"),
-        retract(you_are_at(_)), assert(you_are_at(calypso_island)), look
+        retract(you_are_at(_)), assert(you_are_at(calypso_island)), assert(disembarked), look
     ;   write("As you sail eastward, the wrath of the gods descends upon you.\n"),
         write("A powerful storm engulfs your ship, smashing it to pieces.\n"),
         ansi_format([fg(red)], "GAME OVER: You have perished at sea due to the wrath of the gods.\n", []),

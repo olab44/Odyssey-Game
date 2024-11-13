@@ -12,9 +12,9 @@ disembark :- you_are_at(polyphemus_sea), !,
         write("\nhave left from your supplies. Some of your men stay behind, while the rest of you ventures"),
         write("\nonward to search the tunnels.\n"),
         retract(you_are_at(polyphemus_sea)), assert(you_are_at(polyphemus_cave)), assert(disembarked),
-        nl, plot(meet_polyphemus).
+        nl, meet_polyphemus.
 
-plot(meet_polyphemus) :- !,
+meet_polyphemus :- !,
         write("You walk a long while, far into the cave, when deep voice echoes through the darkness.\n"),
         write("\n'Who are you? What are you doing, breaking into the house of Polyphemus?'\n"),
         write("\nSingle, massive eye opens behind you, glowing in the light of your torch. Polyphemus"),
@@ -58,9 +58,9 @@ talk(cyclops) :- !,
         talk(polyphemus).
 
 embark :- you_are_at(polyphemus_cave),
-        plot(leave_polyphemus), nl, fail.
+        leave_polyphemus, nl, fail.
 
-plot(leave_polyphemus) :- !,
+leave_polyphemus :- !,
         write("\nYou manage to embark on a ship and leave the Cyclops' cave behind. As you do, you can't shake"),
         write("\naway the feeling of being watched, but the eyes are not only those of your men nor the foes you've"),
         write("\nescaped from - the gods have taken an intrest in your actions. Something in the air has changed.\n"),
