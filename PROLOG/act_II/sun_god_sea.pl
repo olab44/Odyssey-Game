@@ -60,3 +60,4 @@ plot(continue_journey) :-
         ansi_format([fg(red)], "GAME OVER: You have perished at sea due to the wrath of the gods.\n", []),
         finish
     ).
+% dopisać że trzeba było zebrać wcześniej miksturę

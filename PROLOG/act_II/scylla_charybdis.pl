@@ -15,7 +15,7 @@ sail_scylla :-
         write("Scylla strikes with terrifying speed, catching you off guard...\n"),
         ansi_format([fg(red)], "GAME OVER: You have been taken by Scylla.\n", []),
         finish
-    ;   
+    ;
         write("You sail past Scylla successfully, but she manages to claim some of your crew.\n"),
 		crew(CurrentCrew),
 		Loss is max(6, round(0.06 * CurrentCrew)),

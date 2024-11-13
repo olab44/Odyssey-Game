@@ -37,14 +37,9 @@ sea_path(lotus_sea, east, open_sea).
 sea_path(polyphemus_sea, east, ithaca_sea).
 sea_path(polyphemus_sea, south, lotus_sea).
 
-land(lotus_sea, lotus_island).
-land(polyphemus_sea, polyphemus_cave).
-
 % ACT II
 sea_path(circe_sea, north, giants_sea).
 sea_path(circe_sea, east, sirens_sea).
-sea_path(circe_sea, west, underworld_sea) :-
-    access_to_underworld(true).
 sea_path(underworld_sea, north, giants_sea).
 sea_path(underworld_sea, east, circe_sea).
 sea_path(sirens_sea, north, giants_sea).
@@ -52,12 +47,18 @@ sea_path(sirens_sea, south, scylla_charybdis_sea).
 sea_path(giants_sea, south, circe_sea).
 sea_path(scylla_charybdis_sea, east, sun_god_sea).
 sea_path(sun_god_sea, south, calypso_island).
+sea_path(open_sea, act_II, circe_sea).
+sea_path(circe_sea, west, underworld_sea) :-
+    access_to_underworld(true).
+
+
+land(lotus_sea, lotus_island).
+land(polyphemus_sea, polyphemus_cave).
 
 land(circe_sea, circe_island).
+land(sun_god_sea, sun_god_island).
 land(underworld_sea, underworld) :-
     access_to_underworld(true).
-land(sun_god_sea, sun_god_island).
-
 
 % MOVEMENT
 
@@ -68,7 +69,7 @@ sail(Direction) :- you_are_at(Here), sea_path(Here, Direction, There), !,
 sail(_) :-
         write("You set sail, but you either find nothing of note in that direction, or the way's impassable."),
         write("\nYou end up turning back.\n"),
-        look.
+        nl, look.
 
 disembark :- disembarked, !,
         write("You're already on land.\n").

@@ -19,7 +19,7 @@ plot(ithaca_sea_storm) :- holding(wind-bag), !,
         write("\nThe reality is not. The bag lies open. The raging storm tears at your ships with vengeance, vicious"),
         write("\ncurrents leading you to distant shores far, far away from Ithaca."),
         retract(holding(wind-bag)),
-        retract(you_are_at(ithaca_sea)), assert(you_are_at(circe_island)).
+        retract(you_are_at(ithaca_sea)), assert(you_are_at(circe_sea)).
 plot(ithaca_sea_storm) :- crew(X),
         (X > 150 ->
                 write("\nIt turns out you can't beat the force of nature that easily. You lose ships - the screams of over"),

@@ -1,4 +1,4 @@
-:- multifile describe/1, plot/1, disembark/0, embark/0, talk/1, holding/1.
+:- multifile describe/1, plot/1, talk/1.
 
 :- dynamic original_crew_count/1.
 :- dynamic access_to_underworld/1.
@@ -72,7 +72,7 @@ talk(crew) :- you_are_at(circe_island), crew(CurrentCrew), CurrentCrew > 0, !,
 talk(circe) :-
     you_are_at(circe_island),
     visited_underworld(true),
-    crew(CurrentCrew), !,   
+    crew(CurrentCrew), !,
     write("Circe sees the weight of your journey and speaks again with wisdom:\n"),
     write("'Your next trial, Odysseus, is the Sirens' Sea, where their hypnotic singing lures sailors to destruction.\n"),
     write("You must have your crew plug their ears with beeswax to resist the sound. But you—remain unsealed and tied to the mast to hear their song.'\n\n"),
@@ -102,8 +102,9 @@ talk(circe) :-
 
 talk(circe) :- you_are_at(circe_island), crew(_), !,
     write("Circe nods in understanding, sensing your readiness to continue your journey.\n"),
-    write("'If you wish to return to Ithaca,' she says, 'you must first venture to the Underworld, then directly come back to me. But heed my warning—avoid the north, for giants dwell there, and their strength is unmatched.'\n"),
-    write("Circe hands you an empty bottle, saying it may prove useful later in your journey.\n"),
+    write("\n'If you wish to return to Ithaca,' she says, 'you must first venture west, to the Underworld, then directly come"),
+    write("\nback to me. But heed my warning — avoid the north, for giants dwell there, and their strength is unmatched.'\n"),
+    write("\nCirce hands you an empty bottle, saying it may prove useful later in your journey.\n"),
     assert(holding(empty_bottle)),
     assert(access_to_underworld(true)),
     write("With her guidance, you feel prepared to set sail once more.\n").

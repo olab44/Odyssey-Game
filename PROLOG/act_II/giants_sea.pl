@@ -5,6 +5,6 @@ describe(giants_sea) :- !,
     crew(CurrentCrew),
     Loss is max(20, round(0.2 * CurrentCrew)),
     crew_death(Loss),
-    format("The giants' attack reduces your crew by ~d members.\n", [Loss]),
-    write("You have no choice but to retreat south.\n"),
+    format("\nThe giants' attack reduces your crew by ~d members.\n", [Loss]),
+    write("\nYou have no choice but to retreat south.\n"),
     sail(south).

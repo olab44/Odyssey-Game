@@ -15,10 +15,10 @@ disembark :- you_are_at(polyphemus_sea), !,
         nl, plot(meet_polyphemus).
 
 plot(meet_polyphemus) :- !,
-        write("You walk a long while, deep into the cave, when deep voice echoes through the darkness.\n"),
+        write("You walk a long while, far into the cave, when deep voice echoes through the darkness.\n"),
         write("\n'Who are you? What are you doing, breaking into the house of Polyphemus?'\n"),
         write("\nSingle, massive eye opens behind you, glowing in the light of your torch. Polyphemus"),
-        write("\ndoes not look happy to see you as he waits for an answer. 'What's your name, stranger?'\n"), flush_output,
+        write("\ndoes not look happy as he waits for an answer. 'What's your name, stranger?'\n"), flush_output,
         read(Name),
         format("\n'Are you the one who killed my sheep, ~w? My favourite sheep. You will pay for what you did", [Name]),
         write("\nwith your own blood.'\n"),
@@ -34,7 +34,8 @@ plot(meet_polyphemus) :- !,
         write("\nIn a heat of a battle, you strike for the Cyclops' eye, blinding him. He's not much of a threat after that.\n"),
         format("\nPolyphemus screams and screams, loud enough to be heard outside of his cave. 'Help! ~w hurts me!'\n", [Name]),
         (Name == nobody ->
-                write("\nBut no one comes to his aid.");
+                write("\nBut no one comes to his aid.\n"),
+                write("\nIt's your opportunity to leave the cave, embark on a ship and get the hell away.");
         write("\nThen there's a sound of heavy steps coming from the direction of the only exit.\n"),
         write("\nThere are more of them. Much, much more.\n"),
         write("\nYou're not leaving this cave alive.\n"),
@@ -49,9 +50,9 @@ talk(polyphemus) :- you_are_at(polyphemus_cave), !,
         write("\nPolyphemus doesn't hear any of the words you've spoken, but he does hear your voice and"),
         write("\nblindly strikes in your direction, enraged. You barely avoid being crushed to death."),
         crew(X),
-        (X > 3 ->
+        (X > 84 ->
                 write("\n\nSome of your men are not so fast."),
-                crew_death(3);
+                crew_death(4);
         true).
 talk(cyclops) :- !,
         talk(polyphemus).
@@ -62,5 +63,5 @@ embark :- you_are_at(polyphemus_cave),
 plot(leave_polyphemus) :- !,
         write("\nYou manage to embark on a ship and leave the Cyclops' cave behind. As you do, you can't shake"),
         write("\naway the feeling of being watched, but the eyes are not only those of your men nor the foes you've"),
-        write("\nescaped from - the gods have taken an intrest in your actions. Something in the air has changed."),
+        write("\nescaped from - the gods have taken an intrest in your actions. Something in the air has changed.\n"),
         assert(land(open_sea, aeolus_island)).

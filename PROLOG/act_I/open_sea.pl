@@ -26,7 +26,7 @@ describe(aeolus_island) :- !,
         write("\nwith various puffs of clouds twisting and turning in the air, as if alive.\n"),
         write("\nAeolus himself flies around as well, never in one place for long. You feel his gaze following you.").
 
-talk(aeolus) :- you_are_at(aeolus_island), !,
+talk(aeolus) :- you_are_at(aeolus_island), \+ object_at(aeolus_island, wind-bag), !,
         write("You kneel down and describe your situation, knowing that the god can hear."),
         write("\nYour ask for assistance is first met with disheartening nothing, but then - laughter.\n"),
         write("\nAeolus comes to a stop right before you. 'I suppose we could play a game, Odysseus of Ithaca."),
