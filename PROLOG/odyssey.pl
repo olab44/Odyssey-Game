@@ -3,8 +3,13 @@
 /* Aleksandra Buczma, Zofia Jasina, Marcin Bagnowski  */
 
 :- [act_I/open_sea], [act_I/ithaca_sea], [act_I/lotus_sea], [act_I/polyphemus_sea].
+<<<<<<< HEAD
 :- [act_II/circe_sea], [act_II/giants_sea], [act_II/scylla_charybdis], [act_II/sirens_sea], [act_II/sun_god_sea], [act_II/underworld_sea].
 :- [act_III/calypso_island].
+=======
+# :- [act_II/circe_sea].
+:- [act_III/calypso_island], [act_III/ithaca], [act_III/sun_god].
+>>>>>>> 530f95d22847182e6bc55d377438a26d6a71ea2e
 :- [exploration].
 
 welcome :- nl,
