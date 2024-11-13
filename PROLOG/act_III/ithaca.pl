@@ -1,5 +1,5 @@
 :- multifile describe/1.
-multifile you_are_at/1.
+:- dynamic you_are_at/1.
 
 describe(ithaca) :- !,
     write("At last, you set foot on Ithaca, your homeland.\n"),
