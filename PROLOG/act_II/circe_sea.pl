@@ -90,7 +90,7 @@ talk(circe) :-
     retractall(crew_lost_to_sirens(_)),
     retractall(crew_survived_sirens(_)),
     assert(crew_survived_sirens(ProtectedCrew)),
-    write("Kirke confirms your plan:\n"),
+    write("Circe confirms your plan:\n"),
     format("~w crew members will work on the potion, granting you a ~w% chance of survival.\n", [PotionCrew, PotionCrew]),
     format("~w crew members are protected.\n", [ProtectedCrew]),
     retractall(scylla_survival_rate(_)),

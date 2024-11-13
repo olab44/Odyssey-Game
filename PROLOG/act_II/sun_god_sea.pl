@@ -57,7 +57,7 @@ plot(continue_journey) :-
         retract(you_are_at(_)), assert(you_are_at(calypso_island)), assert(disembarked), look
     ;   write("As you sail eastward, the wrath of the gods descends upon you.\n"),
         write("A powerful storm engulfs your ship, smashing it to pieces.\n"),
+        write("If only you had something, a magic spell or a potion, to give you strength...\n"),
         ansi_format([fg(red)], "GAME OVER: You have perished at sea due to the wrath of the gods.\n", []),
         finish
     ).
-% dopisać że trzeba było zebrać wcześniej miksturę
