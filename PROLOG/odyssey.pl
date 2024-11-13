@@ -32,7 +32,20 @@ welcome :- nl,
 
 instructions :-
         ansi_format([fg(green)], "--------------------------------------------------------------------", []), nl,
-        write("Add instructions later"), nl,
+        write("AVAILABLE COMMANDS:\n"),
+        write("In all acts, you can use:\n"),
+        write("crew_count. : to check how many crew members are still alive\n"),
+        write("- look. : To observe your surroundings.\n"),
+        write("- talk(person): To interact with characters.\n"),
+        write("- embark. : To board your ship\n"),
+        write("- disembark. : To leave your ship and explore on land.\n\n"),
+        write("- sail(direction). : to sail to another location\n"),
+        write("In Act I, you can additionally use:\n"),
+        write("- take(object). : To collect items you find.\n\n"),
+        write("In Act III, you can additionally use:\n"),
+        write("- gather(material). : To gather essential materials for crafting.\n"),
+        write("- build(material). : To construct a raft or other items needed to progress.\n\n"),
+        write("Good luck on your journey, brave Odysseus!\n"),
         ansi_format([fg(yellow)], "Use the 'start.' command to play the game or 'halt.' to close it.", []), nl,
         ansi_format([fg(green)], "--------------------------------------------------------------------", []), nl.
 
