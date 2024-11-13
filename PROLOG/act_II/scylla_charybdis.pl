@@ -10,7 +10,7 @@ describe(scylla_charybdis_sea) :- !,
 
 sail_scylla :-
     scylla_survival_rate(SurvivalRate),
-    random(0.0, 1.0, Chance),
+    random(Chance),
     (Chance > SurvivalRate ->
         write("Scylla strikes with terrifying speed, catching you off guard...\n"),
         ansi_format([fg(red)], "GAME OVER: You have been taken by Scylla.\n", []),

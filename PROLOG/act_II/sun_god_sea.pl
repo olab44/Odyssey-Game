@@ -22,7 +22,6 @@ talk(crew) :-
 do_not_eat_cattle :-
     write("You stand firm in your decision: 'We will not eat the cattle of the Sun God.'\n"),
     write("The crew protests but ultimately obeys. Over the next days, hunger claims the lives of 50 members.\n"),
-    crew(CurrentCrew),
     crew_death(50).
 
 eat_cattle :-

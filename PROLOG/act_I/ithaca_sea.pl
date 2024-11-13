@@ -23,9 +23,19 @@ ithaca_sea_storm :- holding(wind-bag), !,
 ithaca_sea_storm :- crew(X),
         (X > 150 ->
                 write("\nIt turns out you can't beat the force of nature that easily. You lose ships - the screams of over"),
-                write("\na hundred men are drowned out by the storm as they disappear below the waves - just to end up where"),
-                write("\nyou started. The only safe direction now is towards the calmer open sea - but away from your destination."),
-                crew_death(150);
+                write("\na hundred men are drowned out by the storm as they disappear below the waves.\n"),
+                crew_death(150),
+                retract(you_are_at(ithaca_sea)),
+                random_between(1, 4, Place),
+                (Place == 1 ->
+                        assert(you_are_at(lotus_sea));
+                Place == 2 ->
+                        assert(you_are_at(ithaca_sea));
+                Place == 3 ->
+                        assert(you_are_at(polyphemus_sea));
+                Place == 4 ->
+                        assert(you_are_at(open_sea))),
+                write("\nYou can't control your course as the currents are too strong. You should look around to see where you've ended up.");
         write("\nThe storm is your final fight, the only thing still blocking your way home - and so you're ready"),
         write("\nto risk it all, look for the way through even when there seems to be none.\n"),
         write("\nYou try your best...\n"),
