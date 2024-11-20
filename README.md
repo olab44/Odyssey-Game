@@ -9,6 +9,10 @@
 
 # PROLOG
     $ swipl -g true odyssey.pl
+
+- szacowana liczba linii kodu: 850
+- sumaryczny rozmiar plików: 49KB
+
 # HASKELL
 
 # SMALLTALK
