@@ -61,16 +61,16 @@ instructions = do
     putStrLn (yellow ++ "Type 'start' to play the game or type 'finish' anytime to close it." ++ reset)
     putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
     putStrLn ""
-    promptForStart
+    prompt_for_start
 
-promptForStart :: IO ()
-promptForStart = do
+prompt_for_start :: IO ()
+prompt_for_start = do
     input <- getLine
     if input == "start"
         then start
         else do
             putStrLn "Invalid input. Please try again."
-            promptForStart
+            prompt_for_start
 
 -- Starting the Game
 start :: IO ()

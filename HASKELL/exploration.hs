@@ -3,6 +3,9 @@ module Exploration (play) where
 import Control.Monad (when)
 import Data.Maybe (fromMaybe, listToMaybe)
 import System.Exit (exitSuccess)
+import System.IO (hFlush, stdout)
+import System.Random (randomRIO)
+import Data.List (find)
 
 red, green, yellow, reset :: String
 red = "\ESC[31m"
@@ -11,26 +14,30 @@ yellow = "\ESC[33m"
 reset = "\ESC[0m"
 
 data State = State
-  { youAreAt :: String
-  , crewCount :: Int
+  { you_are_at :: String
+  , crew :: Int
   , disembarked :: Bool
   , holding :: [String]
   , game_over :: Bool
+  , aeolus_island :: Bool
+  , wind_bag_available :: Bool
   } deriving Show
 
 
-initState :: State
-initState = State
-  { youAreAt = "open_sea"
-  , crewCount = 600
+init_state :: State
+init_state = State
+  { you_are_at = "open_sea"
+  , crew = 600
   , disembarked = False
   , holding = []
   , game_over = False
+  , aeolus_island = False
+  , wind_bag_available = False
   }
 
 
-seaPaths :: [((String, String), String)]
-seaPaths =
+sea_paths :: [((String, String), String)]
+sea_paths =
   [ (("open_sea", "north"), "ithaca_sea")
   , (("open_sea", "west"), "lotus_sea")
   , (("ithaca_sea", "south"), "open_sea")
@@ -45,6 +52,7 @@ lands :: [(String, String)]
 lands =
   [ ("lotus_sea", "lotus_island")
   , ("polyphemus_sea", "polyphemus_cave")
+  , ("open_sea", "aeolus_island")
   ]
 
 
@@ -53,28 +61,75 @@ sail direction state
   | disembarked state = do
     putStrLn "You need to embark first."
     return state
-  | otherwise =
-    case lookupSeaPath (youAreAt state) direction of
+  | you_are_at state == "ithaca_sea" && direction /= "south" = ithacaSeaStorm state
+  | otherwise = case lookup_sea_path (you_are_at state) direction of
       Just destination -> do
-          putStrLn "Sailing..."
-          return state { youAreAt = destination }
+        putStrLn "Sailing..."
+        return state { you_are_at = destination }
       Nothing -> do
-          putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
-          return state
+        putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
+        return state
 
 
-lookupSeaPath :: String -> String -> Maybe String
-lookupSeaPath current direction = lookup (current, direction) seaPaths
+ithacaSeaStorm :: State -> IO State
+ithacaSeaStorm state
+  | "wind-bag" `elem` holding state = do
+    putStrLn "\nWith the storm contained, it shouldn't take much longer to reach the coast. Mere weeks.\n"
+    putStrLn "You wish you could relax now, but the wind gods' words won't let you. 'Be careful who you"
+    putStrLn "trust, captain' pushes you to keep your eyes open at all times.\n"
+    putStrLn "You guard the wind-bag to the best of your abilities, but the need to sleep proves stronger eventually.\n"
+    putStrLn "The dream is a lovely one - the family reunited, Penelope and Telemachus in your arms.\n"
+    putStrLn "The reality is not. The bag lies open. The raging storm tears at your ships with vengeance, vicious"
+    putStrLn "currents leading you to distant shores far, far away from Ithaca."
+    let newHolding = filter (/= "wind-bag") (holding state)
+    return state { holding = newHolding, you_are_at = "circe_sea" }
+  | crew state > 150 = do
+    putStrLn "\nIt turns out you can't beat the force of nature that easily. You lose ships - the screams of over"
+    putStrLn "a hundred men are drowned out by the storm as they disappear below the waves.\n"
+    let updatedState = state { crew = crew state - 150 }
+    newPlace <- randomPlace
+    putStrLn "\nYou can't control your course as the currents are too strong. You should look around to see where you've ended up."
+    return updatedState { you_are_at = newPlace }
+  | otherwise = do
+    putStrLn "\nThe storm is your final fight, the only thing still blocking your way home - and so you're ready"
+    putStrLn "to risk it all, look for the way through even when there seems to be none.\n"
+    putStrLn "\nYou try your best...\n"
+    putStrLn "\nIt's just not enough.\n"
+    putStrLn "\nYour ship is the last one from the fleet to fall victim to the crashing waves.\n"
+    return $ finish state
+
+-- Pomocnicza funkcja do losowania nowego miejsca
+randomPlace :: IO String
+randomPlace = do
+  let places = ["lotus_sea", "ithaca_sea", "polyphemus_sea", "open_sea"]
+  idx <- randomRIO (0, length places - 1)
+  return (places !! idx)
+
+
+lookup_sea_path :: String -> String -> Maybe String
+lookup_sea_path current direction = lookup (current, direction) sea_paths
 
 
 embark :: State -> IO State
 embark state
+  | you_are_at state == "polyphemus_cave" = do
+      putStrLn "\nYou manage to embark on a ship and leave the Cyclops' cave behind."
+      putStrLn "As you do, you can't shake the feeling of being watched, but the eyes are not only those of your men nor the foe you've escaped from."
+      putStrLn "The gods have taken an interest in your actions. Something in the air has changed."
+      let newState = state { you_are_at = "open_sea", disembarked = False, aeolus_island = True }
+      return newState
   | disembarked state = do
-    putStrLn "Embarking!"
-    return state { disembarked = False }
+      putStrLn "Embarking!"
+      case lookup_sea (you_are_at state) of
+        Just sea -> do
+          let newState = state { you_are_at = sea, disembarked = False }
+          return newState
+        Nothing -> do
+          putStrLn "There's no available sea to embark on."
+          return state
   | otherwise = do
-    putStrLn "You're already on a ship or there's no ship at all."
-    return state
+      putStrLn "You're already on a ship or there's no ship at all."
+      return state
 
 
 disembark :: State -> IO State
@@ -82,51 +137,209 @@ disembark state
   | disembarked state = do
     putStrLn "You're already on land."
     return state
+  | you_are_at state == "polyphemus_sea" =
+      if aeolus_island state then do
+        putStrLn "Going back to the Cyclops' cave after all that has happened is a suicide. Your crew knows it"
+        putStrLn "and refuses to risk it. You should know better, too."
+        return state
+      else do
+        putStrLn "At the entrance of a cave, you find a herd of sheep - food much tastier than anything you"
+        putStrLn "have left from your supplies. Some of your men stay behind, while the rest of you ventures"
+        putStrLn "onward to search the tunnels."
+        let newState = state { you_are_at = "polyphemus_cave", disembarked = True }
+        meet_polyphemus newState
   | otherwise =
-    case lookupLand (youAreAt state) of
+    case lookup_land (you_are_at state) of
       Just land -> do
           putStrLn "Disembarking!"
-          return state { youAreAt = land, disembarked = True }
+          return state { you_are_at = land, disembarked = True }
       Nothing -> do
           putStrLn "There's no solid land to disembark on."
           return state
 
 
-lookupLand :: String -> Maybe String
-lookupLand sea = lookup sea lands
+meet_polyphemus :: State -> IO State
+meet_polyphemus state = do
+    putStrLn "You walk a long while, far into the cave, when a deep voice echoes through the darkness."
+    putStrLn "'Who are you? What are you doing, breaking into the house of Polyphemus?'"
+    putStrLn "Single, massive eye opens behind you, glowing in the light of your torch. Polyphemus"
+    putStrLn "does not look happy as he waits for an answer. 'What's your name, stranger?'"
+    putStr "|: "
+    hFlush stdout
+    name <- getLine
+    putStrLn $ "'Are you the one who killed my sheep, " ++ name ++ "? My favourite sheep. You will pay for what you did"
+    putStrLn "with your own blood.'"
+    if "wine" `elem` holding state then do
+        putStrLn "At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim"
+        putStrLn "for the cyclops' still opened mouth. The wine from lotus flowers makes his thoughts and movements"
+        putStrLn "sluggish. He manages to land only a few blows."
+        crew_death 6 state
+    else do
+        putStrLn "The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave's floor."
+        crew_death 44 state
+    if name == "nobody" then do
+        putStrLn "But no one comes to his aid."
+        putStrLn "It's your opportunity to leave the cave, embark on a ship and get the hell away."
+        return state
+    else do
+        putStrLn "Then there's a sound of heavy steps coming from the direction of the only exit."
+        putStrLn "There are more of them. Much, much more."
+        putStrLn "You're not leaving this cave alive."
+        return (finish state)
 
 
-look :: State -> String
-look state = "You are at: " ++ youAreAt state
+lookup_land :: String -> Maybe String
+lookup_land sea = lookup sea lands
 
 
-crewCountFn :: State -> String
-crewCountFn state
-  | crewCount state <= 0 = "All crew members have perished. You have lost the game.\n"
-  | otherwise = "You have " ++ show (crewCount state) ++ " crew members remaining."
+lookup_sea :: String -> Maybe String
+lookup_sea land = fmap fst (find ((== land) . snd) lands)
 
 
-takeItem :: String -> State -> IO State
-takeItem object state
-  | object `elem` holding state = do
-    putStrLn $ "You already have the " ++ object ++ "."
+look :: State -> IO State
+look state = do
+  let location = you_are_at state
+  describe state
+
+
+describe :: State -> IO State
+describe state
+  | you_are_at state == "lotus_sea" = do 
+    putStrLn "There's solid land nearby - you notice the glowing light of a fire. It seems inviting."
+    return state
+  | you_are_at state == "lotus_island" = do
+    putStrLn "The island is calm and serene, the whole atmosphere making you sleepy. You see a lake"
+    putStrLn "that's surrounded by plain houses. The people milling around pay you no mind at all,"
+    putStrLn "their thoughts far away."
+    putStrLn ""
+    putStrLn "There's plenty of food on their tables - strange, glowing fruits, which you recognize as"
+    putStrLn "mind-numbing lotus. There's also an abundance of wine - surely the lotus-eaters wouldn't"
+    putStrLn "be mad, were you to take a jug for yourself."
+    return state
+  | you_are_at state == "ithaca_sea" && "wind-bag" `elem` holding state = do
+    putStrLn "The sky is clear, the water smooth - no storm, no tidal wave. You see Ithaca - your destination, your"
+    putStrLn "kingdom, your home - on the horizon. You can already feel the ghost of your wife's embrace."
+    return state
+  | you_are_at state == "ithaca_sea" = do
+    putStrLn "Your way is blocked by giant waves and giant storms. You should probably turn back south, towards"
+    putStrLn "calmer waters - but Ithaca's never been closer in the last ten years and the way home is through."
+    return state
+  | you_are_at state == "polyphemus_sea" = do
+      putStrLn "You're not far from an island, rugged shoreline making way to green fields and rocky mountains"
+      putStrLn "full of caves. One cave in particular looks easy to reach."
+      return state
+  | you_are_at state == "polyphemus_cave" = do
+      putStrLn "The cave is dark and musty, even with a lit torch you barely see more than a few steps ahead."
+      putStrLn "You navigate mostly by the sound of the sea waves to find your way back."
+      return state
+  | you_are_at state == "open_sea" && "wind-bag" `elem` holding state = do
+      putStrLn "Calm open sea and the island of a god, nothing more for you here. You instinctively look"
+      putStrLn "towards north, where the sky's a clear expanse of blue."
+      return state
+  | you_are_at state == "open_sea" && aeolus_island state = do
+      putStrLn "Where once was nothing but water, now lies an island, floating on the waves. The blowing winds feel"
+      putStrLn "different, too, and you can't stop the thought - the home of the wind god. It means hope, a lone"
+      putStrLn "chance of getting help against the storm, if only you disembark and beg."
+      return state
+  | you_are_at state == "open_sea" = do
+      putStrLn "Open sea stretches in all directions, no land in sight. Were you to believe your charts,"
+      putStrLn "Ithaca lies north. North, where you can see a mass of dark clouds covering the sky."
+      return state
+  | you_are_at state == "aeolus_island" = do
+    putStrLn "The home of the wind god, Aeolus, is just as unique as its owner might suggest. Loud and playful"
+    putStrLn "with various puffs of clouds twisting and turning in the air, as if alive."
+    putStrLn "Aeolus himself flies around as well, never in one place for long. You feel his gaze following you."
+    return state
+  | you_are_at state == "circe_sea" = do
+    putStrLn "The waters here feel thick with enchantment, and Circe's island lies ominously ahead."
     return state
   | otherwise = do
-    putStrLn $ "You take the " ++ object
-    return state { holding = object : holding state }
+    putStrLn "There's nothing special around here."
+    return state
 
 
-talk :: String -> State -> IO State
-talk person state = do
-  putStrLn $ "Talking to " ++ person
+crew_count :: State -> IO State
+crew_count state = do
+  putStrLn $ "You have " ++ show (crew state) ++ " crew members remaining."
   return state
 
 
-play :: IO ()
-play = gameLoop initState
+crew_death :: Int -> State -> IO State
+crew_death n state = do
+  let newState = state { crew = crew state - n }
+  if crew newState <= 0 then do
+      putStrLn (red ++ "You have lost all your crew members. Game Over!" ++ reset)
+      return (finish newState)
+  else do
+      crew_count newState
 
-gameLoop :: State -> IO ()
-gameLoop state
+
+take_item :: String -> State -> IO State
+take_item object state
+  | object `elem` holding state = do
+    putStrLn $ "You already have the " ++ object ++ "."
+    return state
+  | you_are_at state == "aeolus_island" && wind_bag_available state = do
+    putStrLn $ "You pick up the " ++ object ++ "."
+    return state  { holding = object : holding state }
+  | you_are_at state == "lotus_island" && object == "wine" = do
+    putStrLn $ "You pick up the " ++ object ++ "."
+    return state  { holding = object : holding state }
+  | otherwise = do
+    putStrLn "You can't find anything like that here."
+    return state
+
+
+talk :: String -> State -> IO State
+talk person state
+  | you_are_at state == "lotus_island" && person == "lotus_eaters" = do
+      putStrLn "It takes a while to find someone present enough to talk to you. Most of the lotus-eaters"
+      putStrLn "are too far gone to even notice you. The talk itself doesn't amount to much, though."
+      putStrLn "The old woman speaks of great dangers up north, but she assures you everything is far"
+      putStrLn "easier with wine."
+      return state
+  | you_are_at state == "polyphemus_cave" && (person == "polyphemus" || person == "cyclops") = do
+      putStrLn "Wrong decision."
+      putStrLn "\nPolyphemus doesn't hear any of the words you've spoken, but he does hear your voice and"
+      putStrLn "blindly strikes in your direction, enraged. You barely avoid being crushed to death."
+      if (crew state) > 84 then do
+          putStrLn "\nSome of your men are not so fast."
+          crew_death 4 state
+      else
+          return state
+  | you_are_at state == "open_sea" && "wind-bag" `elem` holding state && person == "crew" = do
+      putStrLn "The crew's overly eager about the wind-bag, you can't help but notice. They whisper of"
+      putStrLn "treasure and trail off as soon as you come close - clearly not in a mood to talk."
+      return state
+  | you_are_at state == "open_sea" && aeolus_island state && person == "crew" = do
+      putStrLn "Your second-in-command doesn't at all like the idea of asking a god for help. 'They're easy to"
+      putStrLn "anger, captain, and there's only so much time before your luck with them runs out for good.'"
+      return state
+  | you_are_at state == "open_sea" && person == "crew" = do
+      putStrLn "Your men tell you that there's nothing to look for east and south from here, but west - west"
+      putStrLn "is where the birds fly, which probably means solid land."
+      return state
+  | you_are_at state == "aeolus_island" && not (wind_bag_available state) = do
+      putStrLn "You kneel down and describe your situation, knowing that the god can hear."
+      putStrLn "Your ask for assistance is first met with disheartening nothing, but then - laughter."
+      putStrLn "\nAeolus comes to a stop right before you. 'I suppose we could play a game, Odysseus of Ithaca.'"
+      putStrLn "I'll show you a bag with the winds of the storm all trapped. If it gets opened, whatever"
+      putStrLn "the reason... well, good luck.'"
+      putStrLn "'Do be careful who you trust, captain, you never really know.'"
+      putStrLn "\nAnd with that, he's gone on a breeze again, leaving a tied wind-bag at your feet."
+      let newState = state { wind_bag_available = True }
+      return newState
+  | otherwise = do
+      putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
+      return state
+
+
+finish :: State -> State
+finish state = state { game_over = True }
+
+
+game_loop :: State -> IO ()
+game_loop state
   | game_over state = do
     putStrLn ""
     putStrLn (green ++ "------------------------------ THE END -----------------------------" ++ reset)
@@ -134,25 +347,22 @@ gameLoop state
     putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
     return ()
   | otherwise = do
-    putStrLn "Enter your command:"
+    putStr "|: "
+    hFlush stdout
     input <- getLine
-    let newStateIO = processInput input state
+    let newStateIO = process_input input state
     newState <- newStateIO
-    gameLoop newState
+    game_loop newState
 
 
-processInput :: String -> State -> IO State
-processInput input state
+process_input :: String -> State -> IO State
+process_input input state
   | "sail" `elem` words input = sail (last (words input)) state
   | "embark" == input = embark state
   | "disembark" == input = disembark state
-  | "look" == input = do
-    putStrLn (look state)
-    return state
-  | "crew_count" == input = do
-    putStrLn (crewCountFn state)
-    return state
-  | "take" `elem` words input = takeItem (last (words input)) state
+  | "look" == input = look state
+  | "crew_count" == input = crew_count state
+  | "take" `elem` words input = take_item (last (words input)) state
   | "talk" `elem` words input = talk (last (words input)) state
   | "finish" == input = return (finish state)
   | otherwise = do
@@ -160,7 +370,5 @@ processInput input state
     return state
 
 
-
-finish :: State -> State
-finish state = state { game_over = True }
-
+play :: IO ()
+play = game_loop init_state
