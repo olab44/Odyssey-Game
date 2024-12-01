@@ -408,8 +408,10 @@ addMaterial mat inv =
 
 build :: Material -> State -> IO State
 build mat state =
-  let steps = raftStepsCompleted state
-   in case mat of
+  if hasAllMaterials (inventory state)
+    then
+      let steps = raftStepsCompleted state
+      in case mat of
         "logs" ->
           if Base `elem` steps
             then do
@@ -445,6 +447,9 @@ build mat state =
         _ -> do
           putStrLn "Nothing to build with that."
           return state
+    else do
+      putStrLn "Gather the materials first."
+      return state
 
 escape :: State -> IO State
 escape state
