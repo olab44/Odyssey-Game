@@ -3,7 +3,7 @@
 
 describe(ithaca) :- !,
     write("At last, you set foot on Ithaca, your homeland.\n"),
-    write("\nAfter all the trials, you've made it home, where every person on a street talks about\n"),
+    write("\nAfter all the trials, you've made it home, where every person on the street talks about\n"),
     write("the queen's challenge.\n"),
     write("\nBut that's a story for another day.\n"),
     victory.

@@ -1,5 +1,6 @@
 module Exploration (play) where
-
+import Data.Map (Map)
+import qualified Data.Map as Map
 import Control.Monad (when)
 import Data.Maybe (fromMaybe, listToMaybe)
 import System.Exit (exitSuccess)
@@ -13,6 +14,18 @@ green = "\ESC[32m"
 yellow = "\ESC[33m"
 reset = "\ESC[0m"
 
+data RaftStep = Base | Frame | Binding | Mast deriving (Eq, Ord, Show)
+type Material = String
+type Inventory = Map Material Int
+
+requiredMaterials :: [(Material, Int)]
+requiredMaterials =
+  [ ("wood", 2),
+    ("logs", 2),
+    ("rope", 2),
+    ("cloth", 1)
+  ]
+
 data State = State
   { you_are_at :: String
   , crew :: Int
@@ -21,6 +34,8 @@ data State = State
   , game_over :: Bool
   , aeolus_island :: Bool
   , wind_bag_available :: Bool
+  , inventory :: Inventory
+  , raftStepsCompleted :: [RaftStep]
   } deriving Show
 
 
@@ -33,6 +48,8 @@ init_state = State
   , game_over = False
   , aeolus_island = False
   , wind_bag_available = False
+  , inventory = Map.empty
+  , raftStepsCompleted = []
   }
 
 
@@ -54,6 +71,12 @@ lands =
   , ("polyphemus_sea", "polyphemus_cave")
   , ("open_sea", "aeolus_island")
   ]
+
+
+sail_debug :: String -> State -> IO State
+sail_debug location state = do
+  putStrLn $ "Moved to " ++ location ++ "."
+  return state {you_are_at = location}
 
 
 sail :: String -> State -> IO State
@@ -204,7 +227,7 @@ look state = do
 
 describe :: State -> IO State
 describe state
-  | you_are_at state == "lotus_sea" = do 
+  | you_are_at state == "lotus_sea" = do
     putStrLn "There's solid land nearby - you notice the glowing light of a fire. It seems inviting."
     return state
   | you_are_at state == "lotus_island" = do
@@ -253,6 +276,22 @@ describe state
   | you_are_at state == "circe_sea" = do
     putStrLn "The waters here feel thick with enchantment, and Circe's island lies ominously ahead."
     return state
+  | you_are_at state == "calypso_island" = do
+    putStrLn "You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen."
+    putStrLn "The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground."
+    putStrLn "Your crew is no loger alive, your ship is gone. You are left all alone."
+    putStrLn "When you wake up, the first thing you see is a woman, a goddess, who introduces herself as Calypso."
+    putStrLn "She is beautiful, but you want to return home. You can try asking her how to leave."
+    return state
+  | you_are_at state == "ithaca" = do
+    putStrLn "At last, you set foot on Ithaca, your homeland."
+    putStrLn "After all the trials, you've made it home, where every person on the street talks about"
+    putStrLn "the queen's challenge."
+    putStrLn "\nBut that's a story for another day."
+    putStrLn "After years lost at sea, battles fought, and gods defied, you've finally reached Ithaca."
+    putStrLn "You've proven that courage and loyalty can overcome even the wrath of gods.\n"
+    putStrLn "Welcome home, Odysseus."
+    return (finish state)
   | otherwise = do
     putStrLn "There's nothing special around here."
     return state
@@ -329,10 +368,93 @@ talk person state
       putStrLn "\nAnd with that, he's gone on a breeze again, leaving a tied wind-bag at your feet."
       let newState = state { wind_bag_available = True }
       return newState
+  | you_are_at state == "calypso_island" && person == "calypso" && hasAllMaterials (inventory state) = do
+      putStrLn "Why don't you want to stay with me? I would give you everything you need."
+      putStrLn "But I see that nothing can deter you from leaving me. If you truly wish to leave, the correct order to build the raft is cloth first, then rope, then logs, then wood."
+      return state
+  | you_are_at state == "calypso_island" && person == "calypso" = do
+      putStrLn "Calypso gazes at you and says: 'Why hurry to leave? This island is paradise, and I will care for you here forever.'"
+      putStrLn "To return to the life you truly seek, you must craft a raft that can withstand Poseidon's storms."
+      putStrLn "Gather the resources of the island: wood, logs, rope, and cloth. Only then will you be able to return home."
+      return state
   | otherwise = do
       putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
       return state
 
+
+hasAllMaterials :: Inventory -> Bool
+hasAllMaterials inv = all (\(mat, reqAmt) -> Map.findWithDefault 0 mat inv >= reqAmt) requiredMaterials
+
+gather :: Material -> State -> IO State
+gather mat state
+  | you_are_at state /= "calypso_island" || not (elem mat (map fst requiredMaterials)) = do
+    putStrLn "There's no need to gather anything like that now."
+    return state
+  | hasAllMaterials (inventory state) = do
+    putStrLn "You have gathered all necessary materials for the raft! You can start building it."
+    return state
+  | otherwise = do
+      let newInventory = addMaterial mat (inventory state)
+      putStrLn $ "You have gathered " ++ show (Map.findWithDefault 0 mat newInventory) ++ " " ++ mat ++ "(s) already."
+      return state {inventory = newInventory}
+
+addMaterial :: Material -> Inventory -> Inventory
+addMaterial mat inv =
+  let currentAmt = Map.findWithDefault 0 mat inv
+      requiredAmt = fromMaybe 0 (lookup mat requiredMaterials)
+   in if currentAmt < requiredAmt
+        then Map.insert mat (currentAmt + 1) inv
+        else inv
+
+build :: Material -> State -> IO State
+build mat state =
+  let steps = raftStepsCompleted state
+   in case mat of
+        "logs" ->
+          if Base `elem` steps
+            then do
+              putStrLn "You have to build something else."
+              return state
+            else do
+              putStrLn "You lay the base from logs as the foundation of your raft."
+              return state {raftStepsCompleted = Base : steps}
+        "wood" ->
+          if Base `elem` steps && Binding `elem` steps && not (Frame `elem` steps)
+            then do
+              putStrLn "You arrange the wood into a stable frame on top of the base."
+              return state {raftStepsCompleted = Frame : steps}
+            else do
+              putStrLn "You have to build something else."
+              return state
+        "rope" ->
+          if Base `elem` steps && not (Binding `elem` steps)
+            then do
+              putStrLn "You tie everything together with rope to stabilize the structure."
+              return state {raftStepsCompleted = Binding : steps}
+            else do
+              putStrLn "You have to build something else."
+              return state
+        "cloth" ->
+          if Base `elem` steps && Frame `elem` steps && Binding `elem` steps && not (Mast `elem` steps)
+            then do
+              putStrLn "You set up the mast. The raft is complete! You can now attempt to escape Calypso's Island."
+              return state {raftStepsCompleted = Mast : steps}
+            else do
+              putStrLn "You have to build something else."
+              return state
+        _ -> do
+          putStrLn "Nothing to build with that."
+          return state
+
+escape :: State -> IO State
+escape state
+  | Mast `elem` raftStepsCompleted state = do
+    putStrLn "With your raft complete, you set out to sea, leaving Calypso's Island behind."
+    let newState = state { you_are_at = "ithaca", disembarked = False }
+    describe newState
+  | otherwise = do
+    putStrLn "You cannot leave without completing the raft first."
+    return state
 
 finish :: State -> State
 finish state = state { game_over = True }
@@ -364,7 +486,11 @@ process_input input state
   | "crew_count" == input = crew_count state
   | "take" `elem` words input = take_item (last (words input)) state
   | "talk" `elem` words input = talk (last (words input)) state
+  | "gather" `elem` words input = gather (last (words input)) state
+  | "build" `elem` words input = build (last (words input)) state
+  | "escape" == input = escape state
   | "finish" == input = return (finish state)
+  | "sail_debug" `elem` words input = sail_debug (last (words input)) state
   | otherwise = do
     putStrLn "Invalid command"
     return state
