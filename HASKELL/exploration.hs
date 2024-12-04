@@ -1,12 +1,14 @@
 module Exploration (play) where
 import Data.Map (Map)
+import Data.String
 import qualified Data.Map as Map
 import Control.Monad (when)
 import Data.Maybe (fromMaybe, listToMaybe)
 import System.Exit (exitSuccess)
-import System.IO (hFlush, stdout)
+import System.IO (hFlush, stdout, putStrLn)
 import System.Random (randomRIO)
 import Data.List (find)
+import Prelude
 
 red, green, yellow, reset :: String
 red = "\ESC[31m"
@@ -34,6 +36,9 @@ data State = State
   , game_over :: Bool
   , aeolus_island :: Bool
   , wind_bag_available :: Bool
+  , magic_herb_available :: Bool
+  , accessToUnderworld :: Bool
+  , visitedUnderworld :: Bool
   , inventory :: Inventory
   , raftStepsCompleted :: [RaftStep]
   } deriving Show
@@ -48,6 +53,9 @@ init_state = State
   , game_over = False
   , aeolus_island = False
   , wind_bag_available = False
+  , magic_herb_available = False
+  , accessToUnderworld = False
+  , visitedUnderworld = False
   , inventory = Map.empty
   , raftStepsCompleted = []
   }
@@ -55,6 +63,7 @@ init_state = State
 
 sea_paths :: [((String, String), String)]
 sea_paths =
+  -- act I
   [ (("open_sea", "north"), "ithaca_sea")
   , (("open_sea", "west"), "lotus_sea")
   , (("ithaca_sea", "south"), "open_sea")
@@ -62,14 +71,27 @@ sea_paths =
   , (("lotus_sea", "east"), "open_sea")
   , (("polyphemus_sea", "east"), "ithaca_sea")
   , (("polyphemus_sea", "south"), "lotus_sea")
+  -- -- at II
+  , (("circe_sea", "north"), "giants_sea")
+  , (("circe_sea", "east"), "sirens_sea")
+  , (("circe_sea", "west"), "underworld_sea")
+  , (("underworld_sea", "north"), "giants_sea")
+  , (("underworld_sea", "east"), "circe_sea")
+  , (("sirens_sea", "north"), "giants_sea")
+  , (("sirens_sea", "south"), "scylla_charybdis_sea")
+  , (("giants_sea", "south"), "circe_sea")
+  , (("scylla_charybdis_sea", "east"), "sun_god_sea")
+  , (("sun_god_sea", "south"), "calypso_island")
   ]
 
 
 lands :: [(String, String)]
 lands =
-  [ ("lotus_sea", "lotus_island")
-  , ("polyphemus_sea", "polyphemus_cave")
-  , ("open_sea", "aeolus_island")
+  [ ("lotus_sea", "lotus_island"),
+    ("polyphemus_sea", "polyphemus_cave"),
+    ("open_sea", "aeolus_island"),
+    ("circe_sea", "circe_island"),
+    ("underworld_sea", "underworld")
   ]
 
 
@@ -86,12 +108,17 @@ sail direction state
     return state
   | you_are_at state == "ithaca_sea" && direction /= "south" = ithacaSeaStorm state
   | otherwise = case lookup_sea_path (you_are_at state) direction of
-      Just destination -> do
-        putStrLn "Sailing..."
-        return state { you_are_at = destination }
+      Just destination ->
+        if direction == "west" && you_are_at state == "circe_sea" && not (accessToUnderworld state) then do
+          putStrLn "The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe's Sea."
+          return state
+        else do
+          putStrLn "Sailing..."
+          return state { you_are_at = destination }
       Nothing -> do
         putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
         return state
+
 
 
 ithacaSeaStorm :: State -> IO State
@@ -276,6 +303,26 @@ describe state
   | you_are_at state == "circe_sea" = do
     putStrLn "The waters here feel thick with enchantment, and Circe's island lies ominously ahead."
     return state
+  | you_are_at state == "circe_island" =
+      if visitedUnderworld state
+      then do
+        putStrLn "You step back onto Circe's island, feeling the weight of your journey to the Underworld lingering upon you."
+        putStrLn "The familiar sights of her enchanted island are a strange comfort after the shadows of Hades."
+        putStrLn "Circe greets you with a knowing look, sensing the trials you’ve endured and the wisdom you have gained."
+        putStrLn "It’s clear she has more guidance to offer, should you seek her counsel."
+        putStrLn "You may now talk to Circe to ask for further instructions on your journey."
+        return state
+      else do
+        putStrLn "After disembarking on Circe's island, you step into a lush, enchanted forest."
+        putStrLn "The air is thick with mystery, and your instincts warn you of hidden dangers."
+        putStrLn "To continue, you can talk to Hermes or confront Circe to face her enchantments."
+        return state
+  | you_are_at state == "underworld_sea" = do 
+    putStrLn "You have reached the mysterious and eerie waters of the Underworld."
+    return state
+  | you_are_at state == "underworld" = do
+    putStrLn "You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx."
+    return state
   | you_are_at state == "calypso_island" = do
     putStrLn "You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen."
     putStrLn "The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground."
@@ -368,6 +415,43 @@ talk person state
       putStrLn "\nAnd with that, he's gone on a breeze again, leaving a tied wind-bag at your feet."
       let newState = state { wind_bag_available = True }
       return newState
+  | you_are_at state == "circe_island" && person == "hermes" = do
+    putStrLn "Hermes, appearing like a ghostly figure, approaches with wisdom and a gift."
+    putStrLn "Hermes offers you a magical herb, saying it will protect you from Circe's spells. You may need it if you choose to confront her."
+    putStrLn "You now have a magical herb in your possession."
+    let newState = state {magic_herb_available = True}
+    return newState
+  | you_are_at state == "circe_island" && person == "circe" && visitedUnderworld state == False = do
+        putStrLn "Circe nods in understanding, sensing your readiness to continue your journey."
+        putStrLn "'If you wish to return to Ithaca,' she says, 'you must first venture west, to the Underworld, then directly come back to me.'"
+        putStrLn "But heed my warning — avoid the north, for giants dwell there, and their strength is unmatched."
+        putStrLn "Circe hands you an empty bottle, saying it may prove useful later in your journey."
+        let newState = state
+                { holding = "empty_bottle" : holding state
+                , accessToUnderworld = True
+                }
+        putStrLn "With her guidance, you feel prepared to set sail once more."
+        return newState
+  | you_are_at state == "circe_island" && crew state > 0 = do
+        putStrLn "Your crew gathers, their expressions serious. 'Captain,' they say, 'it’s time we resume our journey to Ithaca.'"
+        putStrLn "They remind you of the goal that has driven you across the seas, and their loyalty fills you with resolve."
+        putStrLn "You can now TALK TO CIRCE to seek further guidance from her."
+        return state
+  | you_are_at state == "underworld" && person == "charon" = do
+        putStrLn "Charon, the ferryman, explains the rules of the River Styx."
+        putStrLn "He says he will help you cross, but only if you solve the puzzle."
+        putStrLn "He can only take one thing at a time: the crew, the wine, or Cerberus, the three-headed dog."
+        putStrLn "However, if the crew is left with the wine or Cerberus, disaster will strike."
+        putStrLn "You must cross the river in a specific order to avoid tragedy."
+        putStrLn "To start, Charon will take the crew across."
+        putStrLn "start_ferry_puzzle"
+        putStrLn "You can either take the wine or Cerberus next."
+        putStrLn "The following commands are available to you:"
+        putStrLn "1. 'ferry(X)' - to have Charon take X across the river."
+        putStrLn "2. 'return(X)' - to have Charon return with X."
+        putStrLn "X can be 'crew', 'wine', 'cerber', or 'none'."
+        putStrLn "Please make sure to follow the correct order to avoid losing crew members."
+        return state
   | you_are_at state == "calypso_island" && person == "calypso" && hasAllMaterials (inventory state) = do
       putStrLn "Why don't you want to stay with me? I would give you everything you need."
       putStrLn "But I see that nothing can deter you from leaving me. If you truly wish to leave, the correct order to build the raft is cloth first, then rope, then logs, then wood."
@@ -380,6 +464,39 @@ talk person state
   | otherwise = do
       putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
       return state
+
+confrontCirce :: State -> IO State
+confrontCirce state
+    | magic_herb_available state = do
+        putStrLn "Holding the magical herb, you feel its protective aura as you step into Circe's palace."
+        putStrLn "You sense her spells failing against you."
+        confrontResult state
+    | otherwise = do
+        putStrLn "GAME OVER: Without the protection of the magical herb, Circe’s spell overwhelms you, turning you into a pig, and you lose the game."
+        return state { game_over = True }
+
+confrontResult :: State -> IO State
+confrontResult state = do
+    putStrLn "You now have a choice: will you 'spare' her life or 'kill' her?"
+    choice <- getLine
+    case choice of
+        "spare" -> do
+            let restoredCrew = crew state
+            putStrLn "You decide to spare Circe, who restores your crew to human form. They are relieved, and gratitude fills the air."
+            yearPassed (state { crew = restoredCrew })
+        "kill" -> do
+            putStrLn "GAME OVER: You kill Circe, and in doing so, you lose the chance to undo the curse on your crew. You are left stranded, and your journey ends in failure."
+            return state { game_over = True }
+        _ -> do
+            putStrLn "Invalid choice. You hesitate, and Circe takes advantage of your indecision. She casts a spell, and you and your crew are lost forever."
+            return state { game_over = True }
+
+yearPassed :: State -> IO State
+yearPassed state = do
+    putStrLn "Time passes; a full year slips by as Circe becomes your ally and lover. The comforts of the island nearly make you forget your quest."
+    putStrLn "One day, your crew approaches, urging you to remember Ithaca."
+    putStrLn "You can now TALK TO CREW to discuss the journey ahead."
+    return state
 
 
 hasAllMaterials :: Inventory -> Bool
@@ -496,9 +613,11 @@ process_input input state
   | "escape" == input = escape state
   | "finish" == input = return (finish state)
   | "sail_debug" `elem` words input = sail_debug (last (words input)) state
+  | "confront" `elem` words input && "circe" `elem` words input = confrontCirce state
   | otherwise = do
-    putStrLn "Invalid command"
-    return state
+      putStrLn "Invalid command"
+      return state
+
 
 
 play :: IO ()
