@@ -28,6 +28,13 @@ requiredMaterials =
     ("cloth", 1)
   ]
 
+data GameState = GameState
+  { bank1 :: [String]
+  , bank2 :: [String]
+  , charonOnBank1 :: Bool
+  }
+
+
 data State = State
   { you_are_at :: String
   , crew :: Int
@@ -323,6 +330,10 @@ describe state
   | you_are_at state == "underworld" = do
     putStrLn "You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx."
     return state
+  | you_are_at state == "giants_sea" = do
+    putStrLn  "You have entered the territory of dangerous giants! They begin hurling massive stones at your ships."
+    -- let loss = max 20 (round (0.2 * fromIntegral crew))
+    return state
   | you_are_at state == "calypso_island" = do
     putStrLn "You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen."
     putStrLn "The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground."
@@ -447,8 +458,8 @@ talk person state
         putStrLn "start_ferry_puzzle"
         putStrLn "You can either take the wine or Cerberus next."
         putStrLn "The following commands are available to you:"
-        putStrLn "1. 'ferry(X)' - to have Charon take X across the river."
-        putStrLn "2. 'return(X)' - to have Charon return with X."
+        putStrLn "1. 'ferry X' - to have Charon take X across the river."
+        putStrLn "2. 'return X' - to have Charon return with X."
         putStrLn "X can be 'crew', 'wine', 'cerber', or 'none'."
         putStrLn "Please make sure to follow the correct order to avoid losing crew members."
         return state
@@ -497,6 +508,59 @@ yearPassed state = do
     putStrLn "One day, your crew approaches, urging you to remember Ithaca."
     putStrLn "You can now TALK TO CREW to discuss the journey ahead."
     return state
+
+start_ferry_game :: State -> IO State
+start_ferry_game state = do
+    putStrLn "You have entered the Ferry mini-game. Charon, the ferryman, explains the rules of the River Styx."
+    putStrLn "He will help you cross the river, but only if you solve the puzzle."
+    putStrLn "You can transport the crew, wine, or Cerberus, but you cannot leave certain items together unsupervised."
+    ferry_game_loop state
+
+ferry_game_loop :: State -> IO State
+ferry_game_loop state = do
+    putStrLn "What would you like to do? (Use 'ferry' or 'return' with the item name, e.g., 'ferry crew')."
+    input <- getLine
+    case input of
+        "exit" -> do
+            putStrLn "Exiting the ferry mini-game."
+            return state
+        _ -> do
+            let newState = process_ferry_input input state
+            ferry_game_loop newState
+
+process_ferry_input :: String -> State -> State
+process_ferry_input input state
+    | "ferry" `elem` words input = ferry (last (words input)) state
+    | "return" `elem` words input = returnItem (last (words input)) state
+    | otherwise = do
+        putStrLn "Invalid ferry command. Try again."
+        return state
+
+ferry :: String -> State GameState ()
+ferry item = do
+  state <- get
+  if charonOnBank1 state
+    then do
+      put $ state { bank1 = filter (/= item) (bank1 state)
+                  , bank2 = item : bank2 state
+                  , charonOnBank1 = False }
+      putStrLn $ "Charon took " ++ item ++ " across to bank2."
+    else do
+      put $ state { bank2 = filter (/= item) (bank2 state)
+                  , bank1 = item : bank1 state
+                  , charonOnBank1 = True }
+      putStrLn $ "Charon returned with " ++ item ++ " to bank1."
+
+returnItem :: String -> State GameState ()
+returnItem item = do
+  state <- get
+  if charonOnBank1 state
+    then put $ state { bank1 = filter (/= item) (bank1 state)
+                     , bank2 = item : bank2 state
+                     , charonOnBank1 = False }
+    else put $ state { bank2 = filter (/= item) (bank2 state)
+                     , bank1 = item : bank1 state
+                     , charonOnBank1 = True }
 
 
 hasAllMaterials :: Inventory -> Bool
@@ -614,6 +678,15 @@ process_input input state
   | "finish" == input = return (finish state)
   | "sail_debug" `elem` words input = sail_debug (last (words input)) state
   | "confront" `elem` words input && "circe" `elem` words input = confrontCirce state
+  | "start_ferry_game" == input = do
+      putStrLn "You are about to start the ferry game. Good luck!"
+      start_ferry_game state
+  | "ferry" `elem` words input = do
+      let item = last (words input)
+      process_ferry item state
+  | "return" `elem` words input = do
+      let item = last (words input)
+      process_return item state
   | otherwise = do
       putStrLn "Invalid command"
       return state
