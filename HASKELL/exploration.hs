@@ -4,11 +4,13 @@ import Data.String
 import qualified Data.Map as Map
 import Control.Monad (when)
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.List (delete)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout, putStrLn)
 import System.Random (randomRIO)
 import Data.List (find)
 import Prelude
+import Prelude (putStrLn, putStr)
 
 red, green, yellow, reset :: String
 red = "\ESC[31m"
@@ -17,8 +19,26 @@ yellow = "\ESC[33m"
 reset = "\ESC[0m"
 
 data RaftStep = Base | Frame | Binding | Mast deriving (Eq, Ord, Show)
+data Item = Crew | Wine | Cerber | Charon deriving (Eq, Show)
 type Material = String
 type Inventory = Map Material Int
+
+
+-- data Bank = Bank1 | Bank2 deriving (Eq, Show)
+
+-- otherLoc :: Bank -> Bank
+-- otherLoc Bank1 = Bank2
+-- otherLoc Bank2 = Bank1
+
+-- stringToItem :: String -> Maybe Item
+-- stringToItem "Crew" = Just Crew
+-- stringToItem "Wine" = Just Wine
+-- stringToItem "Cerber" = Just Cerber
+-- stringToItem "Charon" = Just Charon
+-- stringToItem _ = Nothing
+
+
+
 
 requiredMaterials :: [(Material, Int)]
 requiredMaterials =
@@ -28,11 +48,14 @@ requiredMaterials =
     ("cloth", 1)
   ]
 
-data GameState = GameState
-  { bank1 :: [String]
-  , bank2 :: [String]
-  , charonOnBank1 :: Bool
-  }
+-- data FerryGameState = FerryGameState
+--   { bank1 :: [Item]
+--   , bank2 :: [Item]
+--   , charonLoc :: Bank
+--   } deriving (Show)
+
+
+
 
 
 data State = State
@@ -45,8 +68,13 @@ data State = State
   , wind_bag_available :: Bool
   , magic_herb_available :: Bool
   , accessToUnderworld :: Bool
+  -- , ferryState :: FerryGameState
   , visitedUnderworld :: Bool
+  , scyllaSurvivalRate :: Maybe Double
+  , crewSurvivedSirens :: Maybe Int
+  , charybdis_lure :: Bool
   , inventory :: Inventory
+  , potion_recipe :: Maybe Bool
   , raftStepsCompleted :: [RaftStep]
   } deriving Show
 
@@ -63,8 +91,15 @@ init_state = State
   , magic_herb_available = False
   , accessToUnderworld = False
   , visitedUnderworld = False
+  , scyllaSurvivalRate = Nothing
+  , crewSurvivedSirens = Nothing
+  , charybdis_lure = True
   , inventory = Map.empty
   , raftStepsCompleted = []
+  -- ,ferryState = FerryGameState { bank1 = [Crew, Wine, Cerber, Charon]
+  --                               , bank2 = []
+  --                               , charonLoc = Bank1
+  --                               }
   }
 
 
@@ -121,7 +156,9 @@ sail direction state
           return state
         else do
           putStrLn "Sailing..."
-          return state { you_are_at = destination }
+          let newState = state { you_are_at = destination }
+          look newState 
+          return newState
       Nothing -> do
         putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
         return state
@@ -331,8 +368,31 @@ describe state
     putStrLn "You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx."
     return state
   | you_are_at state == "giants_sea" = do
-    putStrLn  "You have entered the territory of dangerous giants! They begin hurling massive stones at your ships."
-    -- let loss = max 20 (round (0.2 * fromIntegral crew))
+    putStrLn "You have entered the territory of dangerous giants! They begin hurling massive stones at your ships."
+    
+    let currentCrew = crew state
+    let loss = max 20 (round (0.2 * fromIntegral currentCrew))  -- Minimum loss is 20, otherwise 20% of the crew
+    let newCrewCount = currentCrew - loss  -- Update the crew count after the loss
+    
+    putStrLn $ "The giants' attack reduces your crew by " ++ show loss ++ " members."
+    putStrLn "You have no choice but to retreat south."
+    
+    -- Update the state to reflect the new crew count and change location to "south"
+    return state { crew = newCrewCount, you_are_at = "south" }
+
+  | you_are_at state == "sirens_sea" = do
+    putStrLn "The waters are calm but ominous as you approach the domain of the Sirens."
+    putStrLn "In the distance, their figures are barely visible, their songs ready to ensnare anyone who listens."
+    putStrLn "You must now decide whether to block your own ears or not."
+    putStrLn "Type plug_ears if you want to block your ears or leave_ears_open if you want to hear the Sirens' song"
+    choice <- getLine
+    processSirensChoice choice state
+    return state
+  | you_are_at state == "scylla_charybdis_sea" = do
+    putStrLn "The sea grows treacherous as you approach the domain of Scylla and Charybdis."
+    putStrLn "To your left, you see Scylla's ominous cliffs, while Charybdis churns the water violently to your right."
+    putStrLn "You must choose which path to take to continue."
+    putStrLn "Type sail_scylla to navigate past Scylla or sail_charybdis to risk waters near Charybdis."
     return state
   | you_are_at state == "calypso_island" = do
     putStrLn "You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen."
@@ -443,6 +503,32 @@ talk person state
                 }
         putStrLn "With her guidance, you feel prepared to set sail once more."
         return newState
+  | you_are_at state == "circe_island" && person == "circe" && visitedUnderworld state == True = do
+        let currentCrew = crew state
+        putStrLn "Circe sees the weight of your journey and speaks again with wisdom:"
+        putStrLn "'Your next trial, Odysseus, is the Sirens' Sea, where their hypnotic singing lures sailors to destruction."
+        putStrLn "You must have your crew plug their ears with beeswax to resist the sound. But you—remain unsealed and tied to the mast to hear their song.'\n"
+        putStrLn "'After passing the Sirens, you will face Scylla and Charybdis. I advise you to sail closer to Scylla; though she will claim 6% of your crew, Charybdis devours entire ships.'\n"
+        putStrLn "Decide now how many of your crew will assist me in gathering ingredients for a potion that could protect you against Scylla."
+        putStrLn "This potion will be crucial if you choose to pass near Scylla, as it may shield you from becoming one of the 6% she devours."
+        putStrLn "Each crew member represents a 1% chance of survival. The rest will collect beeswax to seal their ears."
+        putStrLn $ "Your crew now consists of " ++ show currentCrew ++ " brave warriors."
+        putStrLn "Please enter the number of crew for the potion:"
+        potionCrew <- readLn :: IO Int
+        let remainingCrew = currentCrew - min potionCrew 100
+        let hivesCovered = remainingCrew `div` 5
+        let protectedCrew = round $ fromIntegral currentCrew * fromIntegral (min hivesCovered 100) / 100
+        let newState = state {
+            crewSurvivedSirens = Just protectedCrew,
+            scyllaSurvivalRate = Just (fromIntegral (min potionCrew 100) / 100.0),
+            visitedUnderworld = False
+        }
+        putStrLn "Circe confirms your plan:"
+        putStrLn $ show potionCrew ++ " crew members will work on the potion, granting you a " ++ show potionCrew ++ "% chance of survival."
+        putStrLn $ show protectedCrew ++ " crew members are protected."
+        putStrLn "Those unprotected by wax will perish under the Sirens' spell."
+        putStrLn "When ready, you may depart towards the Sirens' Sea."
+        return newState
   | you_are_at state == "circe_island" && crew state > 0 = do
         putStrLn "Your crew gathers, their expressions serious. 'Captain,' they say, 'it’s time we resume our journey to Ithaca.'"
         putStrLn "They remind you of the goal that has driven you across the seas, and their loyalty fills you with resolve."
@@ -462,7 +548,8 @@ talk person state
         putStrLn "2. 'return X' - to have Charon return with X."
         putStrLn "X can be 'crew', 'wine', 'cerber', or 'none'."
         putStrLn "Please make sure to follow the correct order to avoid losing crew members."
-        return state
+        let newState = state { visitedUnderworld = True }
+        return newState
   | you_are_at state == "calypso_island" && person == "calypso" && hasAllMaterials (inventory state) = do
       putStrLn "Why don't you want to stay with me? I would give you everything you need."
       putStrLn "But I see that nothing can deter you from leaving me. If you truly wish to leave, the correct order to build the raft is cloth first, then rope, then logs, then wood."
@@ -509,58 +596,205 @@ yearPassed state = do
     putStrLn "You can now TALK TO CREW to discuss the journey ahead."
     return state
 
-start_ferry_game :: State -> IO State
-start_ferry_game state = do
-    putStrLn "You have entered the Ferry mini-game. Charon, the ferryman, explains the rules of the River Styx."
-    putStrLn "He will help you cross the river, but only if you solve the puzzle."
-    putStrLn "You can transport the crew, wine, or Cerberus, but you cannot leave certain items together unsupervised."
-    ferry_game_loop state
+processSirensChoice :: String -> State -> IO State
+processSirensChoice choice state
+  | choice == "plug_ears" = do
+      putStrLn "You decide to block your ears with wax."
+      putStrLn "As you sail past, you see the Sirens singing, but their voices cannot reach you."
+      return state
+  | choice == "leave_ears_open" = do
+      putStrLn "You choose to leave your ears open. Your crew ties you tightly to the mast, as per Circe's advice."
+      putStrLn "The Sirens' voices fill the air, haunting and beautiful."
+      putStrLn "You listen, enthralled, and in their song, you learn of a mystical potion recipe that grants strength and protects life."
+      putStrLn "You have learned the potion recipe!"
 
-ferry_game_loop :: State -> IO State
-ferry_game_loop state = do
-    putStrLn "What would you like to do? (Use 'ferry' or 'return' with the item name, e.g., 'ferry crew')."
-    input <- getLine
-    case input of
-        "exit" -> do
-            putStrLn "Exiting the ferry mini-game."
+      let currentCrew = crew state
+      let survived = fromMaybe 0 (crewSurvivedSirens state)
+      let lostCrew = calculateCrewLoss currentCrew survived
+      putStrLn $ "Not all of your crew were protected, and " ++ show lostCrew ++ " of them succumbed to the Sirens' song."
+      putStrLn "With the Sirens behind you, you should sail south on towards the looming cliffs of Scylla and Charybdis."
+      putStrLn "You brace yourself for another challenge as the journey continues."
+
+      return state { potion_recipe = Just True, crew = currentCrew - lostCrew }
+  | otherwise = do
+      putStrLn "Invalid choice. Please type 'plug_ears' or 'leave_ears_open'."
+      return state
+
+calculateCrewLoss :: Int -> Int -> Int
+calculateCrewLoss currentCrew survived = currentCrew - min survived currentCrew
+
+
+-- initializeFerryGame :: FerryGameState
+-- initializeFerryGame = FerryGameState
+--     { bank1 = [Crew, Wine, Cerber, Charon]
+--     , bank2 = []
+--     , charonLoc = Bank1
+--     }
+
+
+-- printFerryState :: FerryGameState -> IO ()
+-- printFerryState (FerryGameState bank1 bank2 charonLoc) = do
+--     putStrLn $ "Bank 1: " ++ show bank1
+--     putStrLn $ "Bank 2: " ++ show bank2
+--     putStrLn $ "Charon is on: " ++ show charonLoc
+
+
+
+-- ferry_game_loop :: FerryGameState -> IO FerryGameState
+-- ferry_game_loop state = do
+--     printFerryState state
+--     putStrLn "Enter your move (e.g., 'ferry crew' or 'return wine'):"
+--     command <- getLine
+--     let newState = process_ferry_input command state
+--     let result = checkFerryState newState
+--     putStrLn result
+--     if result == "The game continues."
+--         then ferry_game_loop newState
+--         else return newState
+
+
+
+
+-- start_ferry_game :: State -> IO State
+-- start_ferry_game state = do
+--     putStrLn "Welcome to the Ferry mini-game!"
+--     let ferryGameState = initializeFerryGame
+--     finalFerryState <- ferry_game_loop ferryGameState
+--     return $ updateStateWithFerryResult state finalFerryState
+
+
+-- updateStateWithFerryResult :: State -> FerryGameState -> State
+-- updateStateWithFerryResult state ferryGameState =
+--     state { ferryState = ferryGameState }
+
+
+
+
+-- process_ferry_input :: String -> FerryGameState -> FerryGameState
+-- process_ferry_input input state =
+--     case words input of
+--         ["ferry", item] -> case parseItem item of
+--             Just parsedItem -> snd $ ferry parsedItem state
+--             Nothing -> error "Invalid item for ferrying."
+--         ["return", item] -> case parseItem item of
+--             Just parsedItem -> snd $ returnItem parsedItem state
+--             Nothing -> error "Invalid item for returning."
+--         _ -> error "Invalid command format."
+
+
+
+
+-- parseItem :: String -> Maybe Item
+-- parseItem str = case str of
+--     "crew" -> Just Crew
+--     "wine" -> Just Wine
+--     "cerberus" -> Just Cerber
+--     "charon" -> Just Charon
+--     _       -> Nothing
+
+
+-- ferry :: Item -> FerryGameState -> (String, FerryGameState)
+-- ferry item (FerryGameState bank1 bank2 charonLoc) =
+--     if item `elem` bank1
+--         then ("Ferrying " ++ show item ++ " to the other bank.",
+--               FerryGameState (delete item bank1) (item : bank2) (otherLoc charonLoc))
+--         else ("Item not on the current bank.",
+--               FerryGameState bank1 bank2 charonLoc)
+
+-- returnItem :: Item -> FerryGameState -> (String, FerryGameState)
+-- returnItem item (FerryGameState bank1 bank2 charonLoc) =
+--     if item `elem` bank2
+--         then ("Returning " ++ show item ++ " to the original bank.",
+--               FerryGameState (item : bank1) (delete item bank2) (otherLoc charonLoc))
+--         else ("Item not on the other bank.",
+--               FerryGameState bank1 bank2 charonLoc)
+
+
+
+
+-- process_ferry :: String -> State -> IO State
+-- process_ferry item state = do
+--     let ferryGameState = ferryState state
+--         parsedItem = read item :: Item
+--         (message, newFerryState) = ferry parsedItem ferryGameState
+--     putStrLn message
+--     return $ updateStateWithFerryResult state newFerryState
+
+-- process_return :: String -> State -> IO State
+-- process_return item state = do
+--     let ferryGameState = ferryState state
+--         parsedItem = read item :: Item
+--         (message, newFerryState) = returnItem parsedItem ferryGameState
+--     putStrLn message
+--     return $ updateStateWithFerryResult state newFerryState
+
+-- handleFerryCommand :: String -> FerryGameState -> FerryGameState
+-- handleFerryCommand command state =
+--     case words command of
+--         ["move", item, "to", "bank2"] ->
+--             moveItemToBank Bank2 item state
+--         ["move", item, "to", "bank1"] ->
+--             moveItemToBank Bank1 item state
+--         _ -> state -- Invalid command
+
+-- moveItemToBank :: Bank -> String -> FerryGameState -> FerryGameState
+-- moveItemToBank targetBank item state
+--     | targetBank == Bank1 && item `elem` bank2 state =
+--         state { bank1 = item : bank1 state, bank2 = filter (/= item) (bank2 state) }
+--     | targetBank == Bank2 && item `elem` bank1 state =
+--         state { bank2 = item : bank2 state, bank1 = filter (/= item) (bank1 state) }
+--     | otherwise = state -- Item not on the opposite bank
+
+
+-- checkFerryState :: FerryGameState -> String
+-- checkFerryState state
+--     | any (`elem` bank1 state) [Crew, Wine, Cerber] && Charon `notElem` bank1 state =
+--         "Disaster! Your crew has perished."
+--     | all (`elem` bank2 state) [Crew, Wine, Cerber, Charon] =
+--         "Congratulations! You won."
+--     | otherwise =
+--         "The game continues."
+
+proceed_to_sun_god_island :: State -> IO State
+proceed_to_sun_god_island state = do
+    putStrLn "After surviving the perilous pass, a fierce storm catches you off guard."
+    putStrLn "The raging waves drive your ship eastward, and you find yourselves on the shores of the Island of the Sun God."
+    return state { you_are_at = "sun_god_island" }
+
+sail_scylla :: State -> IO State
+sail_scylla state = do
+    let survivalRate = scyllaSurvivalRate state
+    case survivalRate of
+        Just rate -> do
+            putStrLn "You approach Scylla..."
+            randomChance <- randomRIO (0.0, 1.0) 
+            if randomChance > rate
+                then do
+                    putStrLn "Scylla strikes with terrifying speed, catching you off guard..."
+                    putStrLn "GAME OVER: You have been taken by Scylla."
+                    return state { game_over = True }
+                else do
+                    putStrLn "You sail past Scylla successfully, but she manages to claim some of your crew."
+                    let currentCrew = crew state
+                    let loss = max 6 (round (0.06 * fromIntegral currentCrew))
+                    let newCrewCount = currentCrew - loss
+                    putStrLn $ "Scylla devours " ++ show loss ++ " of your crew members."
+                    proceed_to_sun_god_island state { crew = newCrewCount }
+
+sail_charybdis :: State -> IO State
+sail_charybdis state = do
+    if charybdis_lure state
+        then do
+            putStrLn "You use the mysterious Charybdis Lure, guiding your ship safely past the deadly whirlpool."
+            putStrLn "The waters calm, and you find yourselves out of danger."
+            proceed_to_sun_god_island state
             return state
-        _ -> do
-            let newState = process_ferry_input input state
-            ferry_game_loop newState
+        else do
+            putStrLn "The whirlpool's powerful currents pull your ship into its deadly grasp."
+            putStrLn "GAME OVER: Your ship and crew are lost to Charybdis."
+            return state { game_over = True }
 
-process_ferry_input :: String -> State -> State
-process_ferry_input input state
-    | "ferry" `elem` words input = ferry (last (words input)) state
-    | "return" `elem` words input = returnItem (last (words input)) state
-    | otherwise = do
-        putStrLn "Invalid ferry command. Try again."
-        return state
 
-ferry :: String -> State GameState ()
-ferry item = do
-  state <- get
-  if charonOnBank1 state
-    then do
-      put $ state { bank1 = filter (/= item) (bank1 state)
-                  , bank2 = item : bank2 state
-                  , charonOnBank1 = False }
-      putStrLn $ "Charon took " ++ item ++ " across to bank2."
-    else do
-      put $ state { bank2 = filter (/= item) (bank2 state)
-                  , bank1 = item : bank1 state
-                  , charonOnBank1 = True }
-      putStrLn $ "Charon returned with " ++ item ++ " to bank1."
-
-returnItem :: String -> State GameState ()
-returnItem item = do
-  state <- get
-  if charonOnBank1 state
-    then put $ state { bank1 = filter (/= item) (bank1 state)
-                     , bank2 = item : bank2 state
-                     , charonOnBank1 = False }
-    else put $ state { bank2 = filter (/= item) (bank2 state)
-                     , bank1 = item : bank1 state
-                     , charonOnBank1 = True }
 
 
 hasAllMaterials :: Inventory -> Bool
@@ -678,18 +912,26 @@ process_input input state
   | "finish" == input = return (finish state)
   | "sail_debug" `elem` words input = sail_debug (last (words input)) state
   | "confront" `elem` words input && "circe" `elem` words input = confrontCirce state
-  | "start_ferry_game" == input = do
-      putStrLn "You are about to start the ferry game. Good luck!"
-      start_ferry_game state
-  | "ferry" `elem` words input = do
-      let item = last (words input)
-      process_ferry item state
-  | "return" `elem` words input = do
-      let item = last (words input)
-      process_return item state
+  | "sail_scylla" ==  input = sail_scylla state
+  | "sail_charybdis"== input = sail_charybdis state
+  -- | "start_ferry_game" == input = do
+  --     putStrLn "You are about to start the ferry game. Good luck!"
+  --     start_ferry_game state
+  -- | "ferry" `elem` words input = do
+  --     let item = last (words input)
+  --     process_ferry item state
+  -- | "return" `elem` words input = do
+  --     let item = last (words input)
+  --     process_return item state
+  -- | "move" `elem` words input = do
+  --     let itemName = last (words input)
+  --     case stringToItem itemName of
+  --       Just item -> return $ moveItemToBank Bank1 item state  -- Change `Bank1` if needed
+  --       Nothing   -> putStrLn "Invalid item" >> return state
   | otherwise = do
       putStrLn "Invalid command"
       return state
+
 
 
 
