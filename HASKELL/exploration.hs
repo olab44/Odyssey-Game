@@ -19,9 +19,17 @@ yellow = "\ESC[33m"
 reset = "\ESC[0m"
 
 data RaftStep = Base | Frame | Binding | Mast deriving (Eq, Ord, Show)
-data Item = Crew | Wine | Cerber | Charon deriving (Eq, Show)
 type Material = String
 type Inventory = Map Material Int
+
+
+data FerryPuzzleState = FerryPuzzleState
+  { itemsOnFerry :: [FerryItem]
+  , itemsOnStartSide :: [FerryItem]
+  , itemsOnEndSide :: [FerryItem]
+  } deriving (Show, Eq)
+
+data FerryItem = Crew | Wine | Cerber | Charon | None deriving (Show, Eq)
 
 
 requiredMaterials :: [(Material, Int)]
@@ -31,7 +39,6 @@ requiredMaterials =
     ("rope", 2),
     ("cloth", 1)
   ]
-
 
 data State = State
   { you_are_at :: String
@@ -43,7 +50,6 @@ data State = State
   , wind_bag_available :: Bool
   , magic_herb_available :: Bool
   , accessToUnderworld :: Bool
-  -- , ferryState :: FerryGameState
   , visitedUnderworld :: Bool
   , scyllaSurvivalRate :: Maybe Double
   , crewSurvivedSirens :: Maybe Int
@@ -53,6 +59,7 @@ data State = State
   , helios_blood :: Bool
   , strength_elixir :: Bool
   , raftStepsCompleted :: [RaftStep]
+  , ferryPuzzleState :: Maybe FerryPuzzleState
   } deriving Show
 
 
@@ -76,11 +83,8 @@ init_state = State
   , inventory = Map.empty
   , strength_elixir = False
   , raftStepsCompleted = []
-  -- ,ferryState = FerryGameState { bank1 = [Crew, Wine, Cerber, Charon]
-  --                               , bank2 = []
-  --                               , charonLoc = Bank1
-  --                               }
   }
+
 
 
 sea_paths :: [((String, String), String)]
@@ -394,6 +398,47 @@ describe state
     putStrLn "There's nothing special around here."
     return state
 
+
+parseFerryItem :: String -> Maybe FerryItem
+parseFerryItem "crew" = Just Crew
+parseFerryItem "wine" = Just Wine
+parseFerryItem "cerber" = Just Cerber
+parseFerryItem "charon" = Just Charon
+parseFerryItem "none" = Just None
+parseFerryItem _ = Nothing
+
+start_ferry_puzzle :: FerryPuzzleState
+start_ferry_puzzle = FerryPuzzleState
+  { itemsOnFerry = []
+  , itemsOnStartSide = [Crew, Wine, Cerber, Charon]
+  , itemsOnEndSide = []
+  }
+
+ferry :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
+ferry puzzleState item =
+  if item `elem` itemsOnStartSide puzzleState
+  then (puzzleState
+          { itemsOnStartSide = filter (/= item) (itemsOnStartSide puzzleState)
+          , itemsOnFerry = item : itemsOnFerry puzzleState
+          }, "You ferried " ++ show item ++ ".")
+  else (puzzleState, "Item is not on the starting side.")
+
+returnItem :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
+returnItem puzzleState item =
+  if item `elem` itemsOnFerry puzzleState
+  then (puzzleState
+          { itemsOnFerry = filter (/= item) (itemsOnFerry puzzleState)
+          , itemsOnStartSide = item : itemsOnStartSide puzzleState
+          }, "You returned " ++ show item ++ " to the start side.")
+  else (puzzleState, "Item is not on the ferry.")
+
+check_ferry_state :: FerryPuzzleState -> Maybe String
+check_ferry_state puzzleState =
+  if itemsOnStartSide puzzleState == [] && itemsOnFerry puzzleState == []
+  then Just "Ferry puzzle completed! All items are on the end side."
+  else Nothing
+
+
 giantsSea :: State -> IO State
 giantsSea state = do
     let currentCrew = crew state
@@ -409,8 +454,6 @@ giantsSea state = do
     let newplace = "circe_sea"
     let finalState = updatedState { you_are_at = newplace}
     return finalState
-
-
 
 
 crew_count :: State -> IO State
@@ -602,6 +645,7 @@ yearPassed state = do
     putStrLn "You can now TALK TO CREW to discuss the journey ahead."
     return state
 
+  
 processSirensChoice :: String -> State -> IO State
 processSirensChoice choice state
   | choice == "plug_ears" = do
@@ -628,137 +672,6 @@ processSirensChoice choice state
 calculateCrewLoss :: Int -> Int -> Int
 calculateCrewLoss currentCrew survived = currentCrew - min survived currentCrew
 
-
--- initializeFerryGame :: FerryGameState
--- initializeFerryGame = FerryGameState
---     { bank1 = [Crew, Wine, Cerber, Charon]
---     , bank2 = []
---     , charonLoc = Bank1
---     }
-
-
--- printFerryState :: FerryGameState -> IO ()
--- printFerryState (FerryGameState bank1 bank2 charonLoc) = do
---     putStrLn $ "Bank 1: " ++ show bank1
---     putStrLn $ "Bank 2: " ++ show bank2
---     putStrLn $ "Charon is on: " ++ show charonLoc
-
-
-
--- ferry_game_loop :: FerryGameState -> IO FerryGameState
--- ferry_game_loop state = do
---     printFerryState state
---     putStrLn "Enter your move (e.g., 'ferry crew' or 'return wine'):"
---     command <- getLine
---     let newState = process_ferry_input command state
---     let result = checkFerryState newState
---     putStrLn result
---     if result == "The game continues."
---         then ferry_game_loop newState
---         else return newState
-
-
-
-
--- start_ferry_game :: State -> IO State
--- start_ferry_game state = do
---     putStrLn "Welcome to the Ferry mini-game!"
---     let ferryGameState = initializeFerryGame
---     finalFerryState <- ferry_game_loop ferryGameState
---     return $ updateStateWithFerryResult state finalFerryState
-
-
--- updateStateWithFerryResult :: State -> FerryGameState -> State
--- updateStateWithFerryResult state ferryGameState =
---     state { ferryState = ferryGameState }
-
-
-
-
--- process_ferry_input :: String -> FerryGameState -> FerryGameState
--- process_ferry_input input state =
---     case words input of
---         ["ferry", item] -> case parseItem item of
---             Just parsedItem -> snd $ ferry parsedItem state
---             Nothing -> error "Invalid item for ferrying."
---         ["return", item] -> case parseItem item of
---             Just parsedItem -> snd $ returnItem parsedItem state
---             Nothing -> error "Invalid item for returning."
---         _ -> error "Invalid command format."
-
-
-
-
--- parseItem :: String -> Maybe Item
--- parseItem str = case str of
---     "crew" -> Just Crew
---     "wine" -> Just Wine
---     "cerberus" -> Just Cerber
---     "charon" -> Just Charon
---     _       -> Nothing
-
-
--- ferry :: Item -> FerryGameState -> (String, FerryGameState)
--- ferry item (FerryGameState bank1 bank2 charonLoc) =
---     if item `elem` bank1
---         then ("Ferrying " ++ show item ++ " to the other bank.",
---               FerryGameState (delete item bank1) (item : bank2) (otherLoc charonLoc))
---         else ("Item not on the current bank.",
---               FerryGameState bank1 bank2 charonLoc)
-
--- returnItem :: Item -> FerryGameState -> (String, FerryGameState)
--- returnItem item (FerryGameState bank1 bank2 charonLoc) =
---     if item `elem` bank2
---         then ("Returning " ++ show item ++ " to the original bank.",
---               FerryGameState (item : bank1) (delete item bank2) (otherLoc charonLoc))
---         else ("Item not on the other bank.",
---               FerryGameState bank1 bank2 charonLoc)
-
-
-
-
--- process_ferry :: String -> State -> IO State
--- process_ferry item state = do
---     let ferryGameState = ferryState state
---         parsedItem = read item :: Item
---         (message, newFerryState) = ferry parsedItem ferryGameState
---     putStrLn message
---     return $ updateStateWithFerryResult state newFerryState
-
--- process_return :: String -> State -> IO State
--- process_return item state = do
---     let ferryGameState = ferryState state
---         parsedItem = read item :: Item
---         (message, newFerryState) = returnItem parsedItem ferryGameState
---     putStrLn message
---     return $ updateStateWithFerryResult state newFerryState
-
--- handleFerryCommand :: String -> FerryGameState -> FerryGameState
--- handleFerryCommand command state =
---     case words command of
---         ["move", item, "to", "bank2"] ->
---             moveItemToBank Bank2 item state
---         ["move", item, "to", "bank1"] ->
---             moveItemToBank Bank1 item state
---         _ -> state -- Invalid command
-
--- moveItemToBank :: Bank -> String -> FerryGameState -> FerryGameState
--- moveItemToBank targetBank item state
---     | targetBank == Bank1 && item `elem` bank2 state =
---         state { bank1 = item : bank1 state, bank2 = filter (/= item) (bank2 state) }
---     | targetBank == Bank2 && item `elem` bank1 state =
---         state { bank2 = item : bank2 state, bank1 = filter (/= item) (bank1 state) }
---     | otherwise = state -- Item not on the opposite bank
-
-
--- checkFerryState :: FerryGameState -> String
--- checkFerryState state
---     | any (`elem` bank1 state) [Crew, Wine, Cerber] && Charon `notElem` bank1 state =
---         "Disaster! Your crew has perished."
---     | all (`elem` bank2 state) [Crew, Wine, Cerber, Charon] =
---         "Congratulations! You won."
---     | otherwise =
---         "The game continues."
 
 proceed_to_sun_god_island :: State -> IO State
 proceed_to_sun_god_island state = do
@@ -973,32 +886,63 @@ process_input input state
   | "finish" == input = return (finish state)
   | "sail_debug" `elem` words input = sail_debug (last (words input)) state
   | "confront" `elem` words input && "circe" `elem` words input = confrontCirce state
-  | "sail_scylla" ==  input = sail_scylla state
-  | "sail_charybdis"== input = sail_charybdis state
-  | "act_II" == input = do
-      putStrLn "You are preparing to enter Circe's Sea for Act II."
-      return state { you_are_at = "circe_sea" }
+  | "sail_scylla" == input = sail_scylla state
+  | "sail_charybdis" == input = sail_charybdis state
+  | "act_II" == input = do return state { you_are_at = "circe_sea" }
+  | "start_ferry_puzzle" == input = do
+      let puzzleState = start_ferry_puzzle
+      putStrLn "The ferry puzzle has begun! Type 'ferry <item>' or 'return <item>' to proceed."
+      return state { ferryPuzzleState = Just puzzleState }
+  | "start_ferry_puzzle" == input = do
+      let puzzleState = start_ferry_puzzle
+      putStrLn "The ferry puzzle has begun! Type 'ferry <item>' or 'return <item>' to proceed."
+      return state { ferryPuzzleState = Just puzzleState }
+  | "ferry" `elem` words input = do
+      case ferryPuzzleState state of
+        Nothing -> do
+          putStrLn "You are not currently in the ferry puzzle."
+          return state
+        Just puzzleState -> do
+          let item = parseFerryItem (last (words input))
+          case item of
+            Nothing -> do
+              putStrLn "Invalid item to ferry."
+              return state
+            Just validItem -> do
+              let (newPuzzleState, message) = ferry puzzleState validItem
+              putStrLn message
+              case check_ferry_state newPuzzleState of
+                Nothing -> return state { ferryPuzzleState = Just newPuzzleState }
+                Just endMessage -> do
+                  putStrLn endMessage
+                  return state { ferryPuzzleState = Nothing }
+  | "return" `elem` words input = do
+      case ferryPuzzleState state of
+        Nothing -> do
+          putStrLn "You are not currently in the ferry puzzle."
+          return state
+        Just puzzleState -> do
+          let item = parseFerryItem (last (words input))
+          case item of
+            Nothing -> do
+              putStrLn "Invalid item to return."
+              return state
+            Just validItem -> do
+              let (newPuzzleState, message) = returnItem puzzleState validItem
+              putStrLn message
+              case check_ferry_state newPuzzleState of
+                Nothing -> return state { ferryPuzzleState = Just newPuzzleState }
+                Just endMessage -> do
+                  putStrLn endMessage
+                  return state { ferryPuzzleState = Nothing }
   | "eat_cattle" == input = eatCattle state
   | "do_not_eat_cattle" == input = doNotEatCattle state
   | "complete_elixir" == input = completeElixir state
   | "continue_journey" == input = continueJourney state
-  -- | "start_ferry_game" == input = do
-  --     putStrLn "You are about to start the ferry game. Good luck!"
-  --     start_ferry_game state
-  -- | "ferry" `elem` words input = do
-  --     let item = last (words input)
-  --     process_ferry item state
-  -- | "return" `elem` words input = do
-  --     let item = last (words input)
-  --     process_return item state
-  -- | "move" `elem` words input = do
-  --     let itemName = last (words input)
-  --     case stringToItem itemName of
-  --       Just item -> return $ moveItemToBank Bank1 item state  -- Change `Bank1` if needed
-  --       Nothing   -> putStrLn "Invalid item" >> return state
   | otherwise = do
       putStrLn "Invalid command"
       return state
+
 
 
 
