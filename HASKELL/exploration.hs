@@ -21,15 +21,11 @@ reset = "\ESC[0m"
 data RaftStep = Base | Frame | Binding | Mast deriving (Eq, Ord, Show)
 type Material = String
 type Inventory = Map Material Int
-
-
+data FerryItem = Crew | Wine | Cerber | Charon | None deriving (Eq, Show)
 data FerryPuzzleState = FerryPuzzleState
-  { itemsOnFerry :: [FerryItem]
-  , itemsOnStartSide :: [FerryItem]
+  { itemsOnStartSide :: [FerryItem]
   , itemsOnEndSide :: [FerryItem]
-  } deriving (Show, Eq)
-
-data FerryItem = Crew | Wine | Cerber | Charon | None deriving (Show, Eq)
+  } deriving (Show)
 
 
 requiredMaterials :: [(Material, Int)]
@@ -54,6 +50,8 @@ data State = State
   , scyllaSurvivalRate :: Maybe Double
   , crewSurvivedSirens :: Maybe Int
   , charybdis_lure :: Bool
+  , longerStay :: Bool
+  , mapAvailable :: Bool
   , inventory :: Inventory
   , potion_recipe :: Bool
   , helios_blood :: Bool
@@ -77,12 +75,15 @@ init_state = State
   , visitedUnderworld = False
   , scyllaSurvivalRate = Nothing
   , crewSurvivedSirens = Nothing
-  , charybdis_lure = True
+  , charybdis_lure = False
   , potion_recipe = False
+  , mapAvailable = False
   , helios_blood = False
+  , longerStay = False
   , inventory = Map.empty
   , strength_elixir = False
   , raftStepsCompleted = []
+  , ferryPuzzleState = Nothing
   }
 
 
@@ -146,6 +147,29 @@ sail direction state
         putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
         return state
 
+showMap :: State -> IO State
+showMap state
+    | mapAvailable state = do
+        putStrLn "Possible moves:"
+        putStrLn "circe_sea, north, giants_sea"
+        putStrLn "circe_sea, west, underworld_sea"
+        putStrLn "circe_sea, east, sirens_sea"
+        putStrLn "underworld_sea, north, giants_sea"
+        putStrLn "underworld_sea, east, circe_sea"
+        putStrLn "sirens_sea, north, giants_sea"
+        putStrLn "sirens_sea, south, scylla_charybdis_sea"
+        putStrLn "giants_sea, south, circe_sea"
+        putStrLn "scylla_charybdis_sea, east, sun_god_sea"
+        putStrLn "sun_god_sea, south, calypso_sea"
+        putStrLn ""
+        putStrLn "Allowed disembarks:"
+        putStrLn "circe_sea, circe_island"
+        putStrLn "underworld_sea, underworld"
+        putStrLn "sun_god_sea, sun_god_island"
+        return state
+    | otherwise = do
+        putStrLn "The map is not available at this time."
+        return state
 
 
 ithacaSeaStorm :: State -> IO State
@@ -407,36 +431,66 @@ parseFerryItem "charon" = Just Charon
 parseFerryItem "none" = Just None
 parseFerryItem _ = Nothing
 
+
 start_ferry_puzzle :: FerryPuzzleState
 start_ferry_puzzle = FerryPuzzleState
-  { itemsOnFerry = []
-  , itemsOnStartSide = [Crew, Wine, Cerber, Charon]
+  {itemsOnStartSide = [Crew, Wine, Cerber, Charon]
   , itemsOnEndSide = []
   }
 
+printState :: FerryPuzzleState -> String
+printState puzzleState =
+  "Start side: " ++ show (itemsOnStartSide puzzleState) ++ "\n" ++
+  "End side: " ++ show (itemsOnEndSide puzzleState)
+
+
 ferry :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
 ferry puzzleState item =
-  if item `elem` itemsOnStartSide puzzleState
-  then (puzzleState
-          { itemsOnStartSide = filter (/= item) (itemsOnStartSide puzzleState)
-          , itemsOnFerry = item : itemsOnFerry puzzleState
-          }, "You ferried " ++ show item ++ ".")
-  else (puzzleState, "Item is not on the starting side.")
+  if item == None
+  then let newState = FerryPuzzleState
+             { itemsOnStartSide = filter (/= Charon) (itemsOnStartSide puzzleState)
+             , itemsOnEndSide = Charon : itemsOnEndSide puzzleState
+             }
+           in (newState, "You ferried nothing\n" ++ printState newState)
+  else if item `elem` itemsOnStartSide puzzleState
+  then let newState = FerryPuzzleState
+             { itemsOnStartSide = filter (\x -> x /= item && x /= Charon) (itemsOnStartSide puzzleState)
+             , itemsOnEndSide = item : Charon : itemsOnEndSide puzzleState
+             }
+           in (newState, "You ferried " ++ show item ++ " and Charon.\n" ++ printState newState)
+  else (puzzleState, "Item is not on the starting side.\n" ++ printState puzzleState)
+
 
 returnItem :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
 returnItem puzzleState item =
-  if item `elem` itemsOnFerry puzzleState
-  then (puzzleState
-          { itemsOnFerry = filter (/= item) (itemsOnFerry puzzleState)
-          , itemsOnStartSide = item : itemsOnStartSide puzzleState
-          }, "You returned " ++ show item ++ " to the start side.")
-  else (puzzleState, "Item is not on the ferry.")
+  if item == None
+  then let newState = FerryPuzzleState
+             { itemsOnEndSide = filter (/= Charon) (itemsOnEndSide puzzleState)
+             , itemsOnStartSide = Charon : itemsOnStartSide puzzleState
+             }
+           in (newState, "You returned with nothing\n" ++ printState newState)
+  else if item `elem` itemsOnEndSide puzzleState
+  then let newState = FerryPuzzleState
+              { itemsOnEndSide = filter (\x -> x /= item && x /= Charon) (itemsOnEndSide puzzleState)
+              , itemsOnStartSide = item : (if Charon `elem` itemsOnStartSide puzzleState then [] else [Charon]) ++ itemsOnStartSide puzzleState
+              }
+            in (newState, "You returned " ++ show item ++ " and Charon to the start side.\n" ++ printState newState)
+  else (puzzleState, "Item is not on the end side.\n" ++ printState puzzleState)
+
 
 check_ferry_state :: FerryPuzzleState -> Maybe String
-check_ferry_state puzzleState =
-  if itemsOnStartSide puzzleState == [] && itemsOnFerry puzzleState == []
-  then Just "Ferry puzzle completed! All items are on the end side."
-  else Nothing
+check_ferry_state puzzleState
+  | (Crew `elem` itemsOnStartSide puzzleState) && (Wine `elem` itemsOnStartSide puzzleState) && not (Charon `elem` itemsOnStartSide puzzleState) =
+      Just "Some from your crew drowned in the River Styx after drinking the wine."
+  | (Crew `elem` itemsOnStartSide puzzleState) && (Cerber `elem` itemsOnStartSide puzzleState) && not (Charon `elem` itemsOnStartSide puzzleState) =
+      Just "Cerberus attacked the crew."
+  | (Crew `elem` itemsOnEndSide puzzleState) && (Wine `elem` itemsOnEndSide puzzleState) && not (Charon `elem` itemsOnEndSide puzzleState) =
+      Just "Some from crew drowned in the River Styx after drinking the wine."
+  | (Crew `elem` itemsOnEndSide puzzleState) && (Cerber `elem` itemsOnEndSide puzzleState) && not (Charon `elem` itemsOnEndSide puzzleState) =
+      Just "Cerberus attacked the crew."
+  | all (`elem` itemsOnEndSide puzzleState) [Crew, Wine, Cerber, Charon] =
+      Just "Congratulations! You have successfully ferried everything across the River Styx. You can now talk to Tiresias"
+  | otherwise = Nothing
 
 
 giantsSea :: State -> IO State
@@ -589,8 +643,41 @@ talk person state
         putStrLn "2. 'return X' - to have Charon return with X."
         putStrLn "X can be 'crew', 'wine', 'cerber', or 'none'."
         putStrLn "Please make sure to follow the correct order to avoid losing crew members."
-        let newState = state { visitedUnderworld = True }
-        return newState
+        return state
+  | you_are_at state == "underworld" && person == "tiresias" = do
+      putStrLn "Tiresias, the prophet, speaks to you with grave solemnity:"
+      putStrLn "I see your future, Odysseus. You may reach Ithaca, but the path will be fraught with hardships."
+      putStrLn "The island of Helios and its sacred cattle will be your doom if you dare approach them."
+      putStrLn "The fates have already sealed the tragic death of your mother, which you have yet to learn."
+      putStrLn "The ferryman urges you to hurry, though he offers you the chance to talk to one of three shades: your mother, Achilles, or Agamemnon."
+      putStrLn "But choose wisely, for you can only speak with one of them."
+      return state { visitedUnderworld = True }
+  | you_are_at state == "underworld" && longerStay state = do
+        putStrLn "A spectral figure appears before you—your mother, Anticleia."
+        putStrLn "'My dear son, I died of grief and longing for you.'"
+        putStrLn "The days of our separation broke my heart. I wish I could have seen you return to Ithaca."
+        putStrLn "With a soft sigh, she hands you a charm—a Charybdis Lure, a precious item that may one day save you from the whirlpool."
+        if not (longerStay state) then do
+            putStrLn "Now you must return to your ship. Further conversations are no longer possible."
+            return state { charybdis_lure = True, accessToUnderworld = False, disembarked = False, you_are_at = "underworld_sea" }
+        else
+            return state { charybdis_lure = True, longerStay = False }
+  | you_are_at state == "underworld" && person == "achilles" = do
+      putStrLn "Achilles, the great warrior, speaks to you with fiery intensity:"
+      putStrLn "'Odysseus, your journey is long, and I know the struggles you face. The gods play cruel games with you."
+      putStrLn "But you must know, I feel no peace here in the Underworld. The thought of my death haunts me still.'"
+      putStrLn "Achilles decides to speak to Charon to extend your stay. You now have time to speak to both your mother and Agamemnon for any wisdom they can provide."
+      return state { longerStay = True }
+  | you_are_at state == "underworld" && person == "agamemnon" = do
+        putStrLn "Agamemnon, the great king of Mycenae, speaks to you from the shadows:"
+        putStrLn "'I was betrayed by my wife, Clytemnestra, and murdered upon my return to Mycenae. But you, Odysseus, will fare better, I hope.'"
+        putStrLn "He offers you a map of the seas ahead—knowledge of the islands that await you in Act II."
+        putStrLn "Type 'show_map' to look at it."
+        if not (longerStay state) then do
+            putStrLn "Now you must return to your ship. Further conversations are no longer possible."
+            return state { mapAvailable = True, accessToUnderworld = False, disembarked = False, you_are_at = "underworld_sea" }
+        else
+            return state { mapAvailable = True, longerStay = False }
   | you_are_at state == "sun_god_island" && person == "crew" = do
       putStrLn "Your crew gathers around, their faces pale with hunger."
       putStrLn "One of them speaks up: 'Captain, we cannot last without food. These cattle are our only chance.'"
@@ -935,6 +1022,7 @@ process_input input state
                 Just endMessage -> do
                   putStrLn endMessage
                   return state { ferryPuzzleState = Nothing }
+  | "show_map" == input = showMap state
   | "eat_cattle" == input = eatCattle state
   | "do_not_eat_cattle" == input = doNotEatCattle state
   | "complete_elixir" == input = completeElixir state
