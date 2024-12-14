@@ -1,4 +1,8 @@
-module Exploration (play) where
+module Exploration where
+import ActII.Underworld
+import ActII.Circe
+import State
+import Utils
 import Data.Map (Map)
 import Data.String
 import qualified Data.Map as Map
@@ -12,79 +16,6 @@ import Data.List (find)
 import Prelude
 import Prelude (putStrLn, putStr)
 
-red, green, yellow, reset :: String
-red = "\ESC[31m"
-green = "\ESC[32m"
-yellow = "\ESC[33m"
-reset = "\ESC[0m"
-
-data RaftStep = Base | Frame | Binding | Mast deriving (Eq, Ord, Show)
-type Material = String
-type Inventory = Map Material Int
-data FerryItem = Crew | Wine | Cerber | Charon | None deriving (Eq, Show)
-data FerryPuzzleState = FerryPuzzleState
-  { itemsOnStartSide :: [FerryItem]
-  , itemsOnEndSide :: [FerryItem]
-  } deriving (Show)
-
-
-requiredMaterials :: [(Material, Int)]
-requiredMaterials =
-  [ ("wood", 2),
-    ("logs", 2),
-    ("rope", 2),
-    ("cloth", 1)
-  ]
-
-data State = State
-  { you_are_at :: String
-  , crew :: Int
-  , disembarked :: Bool
-  , holding :: [String]
-  , game_over :: Bool
-  , aeolus_island :: Bool
-  , wind_bag_available :: Bool
-  , magic_herb_available :: Bool
-  , accessToUnderworld :: Bool
-  , visitedUnderworld :: Bool
-  , scyllaSurvivalRate :: Maybe Double
-  , crewSurvivedSirens :: Maybe Int
-  , charybdis_lure :: Bool
-  , longerStay :: Bool
-  , mapAvailable :: Bool
-  , inventory :: Inventory
-  , potion_recipe :: Bool
-  , helios_blood :: Bool
-  , strength_elixir :: Bool
-  , raftStepsCompleted :: [RaftStep]
-  , ferryPuzzleState :: Maybe FerryPuzzleState
-  } deriving Show
-
-
-init_state :: State
-init_state = State
-  { you_are_at = "open_sea"
-  , crew = 600
-  , disembarked = False
-  , holding = []
-  , game_over = False
-  , aeolus_island = False
-  , wind_bag_available = False
-  , magic_herb_available = False
-  , accessToUnderworld = False
-  , visitedUnderworld = False
-  , scyllaSurvivalRate = Nothing
-  , crewSurvivedSirens = Nothing
-  , charybdis_lure = False
-  , potion_recipe = False
-  , mapAvailable = False
-  , helios_blood = False
-  , longerStay = False
-  , inventory = Map.empty
-  , strength_elixir = False
-  , raftStepsCompleted = []
-  , ferryPuzzleState = Nothing
-  }
 
 
 
@@ -423,75 +354,6 @@ describe state
     return state
 
 
-parseFerryItem :: String -> Maybe FerryItem
-parseFerryItem "crew" = Just Crew
-parseFerryItem "wine" = Just Wine
-parseFerryItem "cerber" = Just Cerber
-parseFerryItem "charon" = Just Charon
-parseFerryItem "none" = Just None
-parseFerryItem _ = Nothing
-
-
-start_ferry_puzzle :: FerryPuzzleState
-start_ferry_puzzle = FerryPuzzleState
-  {itemsOnStartSide = [Crew, Wine, Cerber, Charon]
-  , itemsOnEndSide = []
-  }
-
-printState :: FerryPuzzleState -> String
-printState puzzleState =
-  "Start side: " ++ show (itemsOnStartSide puzzleState) ++ "\n" ++
-  "End side: " ++ show (itemsOnEndSide puzzleState)
-
-
-ferry :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
-ferry puzzleState item =
-  if item == None
-  then let newState = FerryPuzzleState
-             { itemsOnStartSide = filter (/= Charon) (itemsOnStartSide puzzleState)
-             , itemsOnEndSide = Charon : itemsOnEndSide puzzleState
-             }
-           in (newState, "You ferried nothing\n" ++ printState newState)
-  else if item `elem` itemsOnStartSide puzzleState
-  then let newState = FerryPuzzleState
-             { itemsOnStartSide = filter (\x -> x /= item && x /= Charon) (itemsOnStartSide puzzleState)
-             , itemsOnEndSide = item : Charon : itemsOnEndSide puzzleState
-             }
-           in (newState, "You ferried " ++ show item ++ " and Charon.\n" ++ printState newState)
-  else (puzzleState, "Item is not on the starting side.\n" ++ printState puzzleState)
-
-
-returnItem :: FerryPuzzleState -> FerryItem -> (FerryPuzzleState, String)
-returnItem puzzleState item =
-  if item == None
-  then let newState = FerryPuzzleState
-             { itemsOnEndSide = filter (/= Charon) (itemsOnEndSide puzzleState)
-             , itemsOnStartSide = Charon : itemsOnStartSide puzzleState
-             }
-           in (newState, "You returned with nothing\n" ++ printState newState)
-  else if item `elem` itemsOnEndSide puzzleState
-  then let newState = FerryPuzzleState
-              { itemsOnEndSide = filter (\x -> x /= item && x /= Charon) (itemsOnEndSide puzzleState)
-              , itemsOnStartSide = item : (if Charon `elem` itemsOnStartSide puzzleState then [] else [Charon]) ++ itemsOnStartSide puzzleState
-              }
-            in (newState, "You returned " ++ show item ++ " and Charon to the start side.\n" ++ printState newState)
-  else (puzzleState, "Item is not on the end side.\n" ++ printState puzzleState)
-
-
-check_ferry_state :: FerryPuzzleState -> Maybe String
-check_ferry_state puzzleState
-  | (Crew `elem` itemsOnStartSide puzzleState) && (Wine `elem` itemsOnStartSide puzzleState) && not (Charon `elem` itemsOnStartSide puzzleState) =
-      Just "Some from your crew drowned in the River Styx after drinking the wine."
-  | (Crew `elem` itemsOnStartSide puzzleState) && (Cerber `elem` itemsOnStartSide puzzleState) && not (Charon `elem` itemsOnStartSide puzzleState) =
-      Just "Cerberus attacked the crew."
-  | (Crew `elem` itemsOnEndSide puzzleState) && (Wine `elem` itemsOnEndSide puzzleState) && not (Charon `elem` itemsOnEndSide puzzleState) =
-      Just "Some from crew drowned in the River Styx after drinking the wine."
-  | (Crew `elem` itemsOnEndSide puzzleState) && (Cerber `elem` itemsOnEndSide puzzleState) && not (Charon `elem` itemsOnEndSide puzzleState) =
-      Just "Cerberus attacked the crew."
-  | all (`elem` itemsOnEndSide puzzleState) [Crew, Wine, Cerber, Charon] =
-      Just "Congratulations! You have successfully ferried everything across the River Styx. You can now talk to Tiresias"
-  | otherwise = Nothing
-
 
 giantsSea :: State -> IO State
 giantsSea state = do
@@ -698,39 +560,6 @@ talk person state
   | otherwise = do
       putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
       return state
-
-confrontCirce :: State -> IO State
-confrontCirce state
-    | magic_herb_available state = do
-        putStrLn "Holding the magical herb, you feel its protective aura as you step into Circe's palace."
-        putStrLn "You sense her spells failing against you."
-        confrontResult state
-    | otherwise = do
-        putStrLn "GAME OVER: Without the protection of the magical herb, Circe’s spell overwhelms you, turning you into a pig, and you lose the game."
-        return state { game_over = True }
-
-confrontResult :: State -> IO State
-confrontResult state = do
-    putStrLn "You now have a choice: will you 'spare' her life or 'kill' her?"
-    choice <- getLine
-    case choice of
-        "spare" -> do
-            let restoredCrew = crew state
-            putStrLn "You decide to spare Circe, who restores your crew to human form. They are relieved, and gratitude fills the air."
-            yearPassed (state { crew = restoredCrew })
-        "kill" -> do
-            putStrLn "GAME OVER: You kill Circe, and in doing so, you lose the chance to undo the curse on your crew. You are left stranded, and your journey ends in failure."
-            return state { game_over = True }
-        _ -> do
-            putStrLn "Invalid choice. You hesitate, and Circe takes advantage of your indecision. She casts a spell, and you and your crew are lost forever."
-            return state { game_over = True }
-
-yearPassed :: State -> IO State
-yearPassed state = do
-    putStrLn "Time passes; a full year slips by as Circe becomes your ally and lover. The comforts of the island nearly make you forget your quest."
-    putStrLn "One day, your crew approaches, urging you to remember Ithaca."
-    putStrLn "You can now TALK TO CREW to discuss the journey ahead."
-    return state
 
   
 processSirensChoice :: String -> State -> IO State
@@ -939,101 +768,3 @@ escape state
 
 finish :: State -> State
 finish state = state { game_over = True }
-
-
-game_loop state = do
-  if game_over state then do
-    putStrLn ""
-    putStrLn (green ++ "------------------------------ THE END -----------------------------" ++ reset)
-    putStrLn (yellow ++ "                      Thank you for playing!" ++ reset)
-    putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
-    return ()
-  else do
-    putStr "|: "
-    hFlush stdout
-    input <- getLine
-    let newStateIO = process_input input state
-    newState <- newStateIO
-    game_loop newState
-
-
-
-process_input :: String -> State -> IO State
-process_input input state
-  | "sail" `elem` words input = sail (last (words input)) state
-  | "embark" == input = embark state
-  | "disembark" == input = disembark state
-  | "look" == input = look state
-  | "crew_count" == input = crew_count state
-  | "take" `elem` words input = take_item (last (words input)) state
-  | "talk" `elem` words input = talk (last (words input)) state
-  | "gather" `elem` words input = gather (last (words input)) state
-  | "build" `elem` words input = build (last (words input)) state
-  | "escape" == input = escape state
-  | "finish" == input = return (finish state)
-  | "sail_debug" `elem` words input = sail_debug (last (words input)) state
-  | "confront" `elem` words input && "circe" `elem` words input = confrontCirce state
-  | "sail_scylla" == input = sail_scylla state
-  | "sail_charybdis" == input = sail_charybdis state
-  | "act_II" == input = do return state { you_are_at = "circe_sea" }
-  | "start_ferry_puzzle" == input = do
-      let puzzleState = start_ferry_puzzle
-      putStrLn "The ferry puzzle has begun! Type 'ferry <item>' or 'return <item>' to proceed."
-      return state { ferryPuzzleState = Just puzzleState }
-  | "start_ferry_puzzle" == input = do
-      let puzzleState = start_ferry_puzzle
-      putStrLn "The ferry puzzle has begun! Type 'ferry <item>' or 'return <item>' to proceed."
-      return state { ferryPuzzleState = Just puzzleState }
-  | "ferry" `elem` words input = do
-      case ferryPuzzleState state of
-        Nothing -> do
-          putStrLn "You are not currently in the ferry puzzle."
-          return state
-        Just puzzleState -> do
-          let item = parseFerryItem (last (words input))
-          case item of
-            Nothing -> do
-              putStrLn "Invalid item to ferry."
-              return state
-            Just validItem -> do
-              let (newPuzzleState, message) = ferry puzzleState validItem
-              putStrLn message
-              case check_ferry_state newPuzzleState of
-                Nothing -> return state { ferryPuzzleState = Just newPuzzleState }
-                Just endMessage -> do
-                  putStrLn endMessage
-                  return state { ferryPuzzleState = Nothing }
-  | "return" `elem` words input = do
-      case ferryPuzzleState state of
-        Nothing -> do
-          putStrLn "You are not currently in the ferry puzzle."
-          return state
-        Just puzzleState -> do
-          let item = parseFerryItem (last (words input))
-          case item of
-            Nothing -> do
-              putStrLn "Invalid item to return."
-              return state
-            Just validItem -> do
-              let (newPuzzleState, message) = returnItem puzzleState validItem
-              putStrLn message
-              case check_ferry_state newPuzzleState of
-                Nothing -> return state { ferryPuzzleState = Just newPuzzleState }
-                Just endMessage -> do
-                  putStrLn endMessage
-                  return state { ferryPuzzleState = Nothing }
-  | "show_map" == input = showMap state
-  | "eat_cattle" == input = eatCattle state
-  | "do_not_eat_cattle" == input = doNotEatCattle state
-  | "complete_elixir" == input = completeElixir state
-  | "continue_journey" == input = continueJourney state
-  | otherwise = do
-      putStrLn "Invalid command"
-      return state
-
-
-
-
-
-play :: IO ()
-play = game_loop init_state

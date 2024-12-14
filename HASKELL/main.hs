@@ -1,13 +1,10 @@
 module Main (main) where
-import Exploration (play)
+import Exploration
+import InputProcess
+import Utils
+import State
+import System.IO (hFlush, stdout)
 
-
--- Sekwencje escape ANSI
-red, green, yellow, reset :: String
-red = "\ESC[31m"
-green = "\ESC[32m"
-yellow = "\ESC[33m"
-reset = "\ESC[0m"
 
 -- Welcome Screen
 welcome :: IO ()
@@ -87,6 +84,24 @@ start = do
     putStrLn "You can also check the current size of your crew by typing crewCount.\n"
     play
 
+play :: IO ()
+play = game_loop init_state
+
+game_loop :: State -> IO ()
+game_loop state
+  | game_over state = do
+    putStrLn ""
+    putStrLn (green ++ "------------------------------ THE END -----------------------------" ++ reset)
+    putStrLn (yellow ++ "                      Thank you for playing!" ++ reset)
+    putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
+    return ()
+  | otherwise = do
+    putStr "|: "
+    hFlush stdout
+    input <- getLine
+    let newStateIO = process_input input state
+    newState <- newStateIO
+    game_loop newState
 
 -- Main Program
 main :: IO ()
