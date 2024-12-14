@@ -2,6 +2,10 @@ module InputProcess where
 import Exploration
 import ActII.Circe
 import ActII.Underworld
+import ActII.GiantsSea
+import ActII.Sirens
+import ActII.SunGod
+import ActII.ScyllaCharybdis
 import State
 
 

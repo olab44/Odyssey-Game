@@ -36,7 +36,7 @@ ferry puzzleState item =
              { itemsOnStartSide = filter (\x -> x /= item && x /= Charon) (itemsOnStartSide puzzleState)
              , itemsOnEndSide = item : Charon : itemsOnEndSide puzzleState
              }
-           in (newState, "You ferried " ++ show item ++ " and Charon.\n" ++ printState newState)
+           in (newState, "You ferried " ++ show item ++ "\n" ++ printState newState)
   else (puzzleState, "Item is not on the starting side.\n" ++ printState puzzleState)
 
 
@@ -53,7 +53,7 @@ returnItem puzzleState item =
               { itemsOnEndSide = filter (\x -> x /= item && x /= Charon) (itemsOnEndSide puzzleState)
               , itemsOnStartSide = item : (if Charon `elem` itemsOnStartSide puzzleState then [] else [Charon]) ++ itemsOnStartSide puzzleState
               }
-            in (newState, "You returned " ++ show item ++ " and Charon to the start side.\n" ++ printState newState)
+            in (newState, "You returned " ++ show item ++ " to the start side.\n" ++ printState newState)
   else (puzzleState, "Item is not on the end side.\n" ++ printState puzzleState)
 
 

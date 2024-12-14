@@ -1,6 +1,6 @@
 module Exploration where
-import ActII.Underworld
-import ActII.Circe
+import ActII.GiantsSea
+import ActII.Sirens
 import State
 import Utils
 import Data.Map (Map)
@@ -354,24 +354,6 @@ describe state
     return state
 
 
-
-giantsSea :: State -> IO State
-giantsSea state = do
-    let currentCrew = crew state
-    let loss = max 20 (min currentCrew (round (0.2 * fromIntegral currentCrew)))
-    let newCrewCount = currentCrew - loss
-    let updatedState = state { crew = newCrewCount }
-
-    putStrLn $ "Current crew before loss: " ++ show currentCrew
-    putStrLn $ "Calculated loss: " ++ show loss
-    putStrLn $ "New crew count after loss: " ++ show newCrewCount
-    putStrLn $ "The giants' attack reduces your crew by " ++ show loss ++ " members."
-    putStrLn "You have no choice but to retreat south."
-    let newplace = "circe_sea"
-    let finalState = updatedState { you_are_at = newplace}
-    return finalState
-
-
 crew_count :: State -> IO State
 crew_count state = do
   putStrLn $ "You have " ++ show (crew state) ++ " crew members remaining."
@@ -560,130 +542,6 @@ talk person state
   | otherwise = do
       putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
       return state
-
-  
-processSirensChoice :: String -> State -> IO State
-processSirensChoice choice state
-  | choice == "plug_ears" = do
-      putStrLn "You decide to block your ears with wax."
-      putStrLn "As you sail past, you see the Sirens singing, but their voices cannot reach you."
-      return state
-  | choice == "leave_ears_open" = do
-      putStrLn "You choose to leave your ears open. Your crew ties you tightly to the mast, as per Circe's advice."
-      putStrLn "The Sirens' voices fill the air, haunting and beautiful."
-      putStrLn "You listen, enthralled, and in their song, you learn of a mystical potion recipe that grants strength and protects life."
-      putStrLn "You have learned the potion recipe!"
-      let currentCrew = crew state
-      let survived = fromMaybe 0 (crewSurvivedSirens state)
-      let lostCrew = calculateCrewLoss currentCrew survived
-      putStrLn $ "Not all of your crew were protected, and " ++ show lostCrew ++ " of them succumbed to the Sirens' song."
-      putStrLn "With the Sirens behind you, you should sail south on towards the looming cliffs of Scylla and Charybdis."
-      putStrLn "You brace yourself for another challenge as the journey continues."
-      let newstate = state {potion_recipe = True, crew = currentCrew - lostCrew}
-      return newstate
-  | otherwise = do
-      putStrLn "Invalid choice. Please type 'plug_ears' or 'leave_ears_open'."
-      return state
-
-calculateCrewLoss :: Int -> Int -> Int
-calculateCrewLoss currentCrew survived = currentCrew - min survived currentCrew
-
-
-proceed_to_sun_god_island :: State -> IO State
-proceed_to_sun_god_island state = do
-    putStrLn "After surviving the perilous pass, a fierce storm catches you off guard."
-    putStrLn "The raging waves drive your ship eastward, and you find yourselves on the shores of the Island of the Sun God."
-    return state { you_are_at = "sun_god_island" }
-
-sail_scylla :: State -> IO State
-sail_scylla state = do
-    let survivalRate = scyllaSurvivalRate state
-    case survivalRate of
-        Just rate -> do
-            putStrLn "You approach Scylla..."
-            randomChance <- randomRIO (0.0, 1.0) 
-            if randomChance > rate
-                then do
-                    putStrLn "Scylla strikes with terrifying speed, catching you off guard..."
-                    putStrLn "GAME OVER: You have been taken by Scylla."
-                    return state { game_over = True }
-                else do
-                    putStrLn "You sail past Scylla successfully, but she manages to claim some of your crew."
-                    let currentCrew = crew state
-                    let loss = max 6 (round (0.06 * fromIntegral currentCrew))
-                    let newCrewCount = currentCrew - loss
-                    putStrLn $ "Scylla devours " ++ show loss ++ " of your crew members."
-                    proceed_to_sun_god_island state { crew = newCrewCount }
-
-sail_charybdis :: State -> IO State
-sail_charybdis state = do
-    if charybdis_lure state
-        then do
-            putStrLn "You use the mysterious Charybdis Lure, guiding your ship safely past the deadly whirlpool."
-            putStrLn "The waters calm, and you find yourselves out of danger."
-            proceed_to_sun_god_island state
-            return state
-        else do
-            putStrLn "The whirlpool's powerful currents pull your ship into its deadly grasp."
-            putStrLn "GAME OVER: Your ship and crew are lost to Charybdis."
-            return state { game_over = True }
-
-eatCattle :: State -> IO State
-eatCattle state = do
-    putStrLn "Reluctantly, you allow the crew to slaughter the sacred cattle of Helios."
-    putStrLn "The feast restores their strength, but you sense a dark omen in the air."
-    if potion_recipe state
-        then do
-            putStrLn "As you consume the cattle, you find a special vial containing the blood of Helios’s sacred beast."
-            putStrLn "This is the final ingredient needed to complete the elixir of strength."
-            putStrLn "Type \"complete_elixir\" to obtain it."
-            return state { helios_blood = True}
-        else return state
-
-completeElixir :: State -> IO State
-completeElixir state = do
-    if potion_recipe state && helios_blood state then do
-        putStrLn "Using the empty bottle and the blood of Helios’s cattle, you complete the Elixir of Strength."
-        return state { strength_elixir = True}
-    else if not (potion_recipe state) then do
-        putStrLn "You lack the potion recipe."
-        return state
-    else do
-        putStrLn "You lack the blood of Helios cattle."
-        return state
-
-
-continueJourney :: State -> IO State
-continueJourney state
-    | you_are_at state == "sun_god_island" =
-        if strength_elixir state
-            then do
-                putStrLn "As you leave the island, a thunderous voice echoes: 'For your desecration, you shall be punished!'"
-                putStrLn "The sea rages as a powerful storm descends upon your ship."
-                putStrLn "Thanks to the Elixir of Strength, you alone withstand the gods' wrath and survive."
-                putStrLn "Your crew perishes, and you lose consciousness..."
-                return state { you_are_at = "calypso_island", disembarked = True, crew = 1 }
-            else do
-                putStrLn "As you sail eastward, the wrath of the gods descends upon you."
-                putStrLn "A powerful storm engulfs your ship, smashing it to pieces."
-                putStrLn "If only you had something, a magic spell or a potion, to give you strength..."
-                putStrLn "GAME OVER: You have perished at sea due to the wrath of the gods."
-                return state { game_over = True }
-    | otherwise = do
-        putStrLn "You cannot continue your journey from here."
-        return state
-
-
-
-doNotEatCattle :: State -> IO State
-doNotEatCattle state = do
-    let currentCrew = crew state
-    let loss = 50
-    let newCrewCount = max 0 (currentCrew - loss)
-    putStrLn "You stand firm in your decision: 'We will not eat the cattle of the Sun God.'"
-    putStrLn "The crew protests but ultimately obeys. Over the next days, hunger claims the lives of 50 members."
-    return state {crew = newCrewCount}
-
 
 
 
