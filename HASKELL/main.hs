@@ -1,10 +1,8 @@
 module Main (main) where
-import Exploration
 import InputProcess
 import Utils
 import State
 import System.IO (hFlush, stdout)
-
 
 -- Welcome Screen
 welcome :: IO ()
@@ -40,7 +38,7 @@ instructions = do
     putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
     putStrLn "AVAILABLE COMMANDS:"
     putStrLn "In all acts, you can use:"
-    putStrLn "- crewCount : to check how many crew members are still alive"
+    putStrLn "- crew_count : to check how many crew members are still alive"
     putStrLn "- look : To observe your surroundings."
     putStrLn "- talk person : To interact with characters."
     putStrLn "- embark : To board your ship"
@@ -60,16 +58,16 @@ instructions = do
     putStrLn ""
     prompt_for_start
 
+-- Starting the Game
 prompt_for_start :: IO ()
 prompt_for_start = do
     input <- getLine
     if input == "start"
         then start
         else do
-            putStrLn "Invalid input. Please try again."
+            putStrLn "Input 'start' to play the game."
             prompt_for_start
 
--- Starting the Game
 start :: IO ()
 start = do
     putStrLn "\nThe city of Troy has been seized, the war won. Ten years away from home are finally coming to"
@@ -81,12 +79,12 @@ start = do
     putStrLn "With trusted crew by your side, the six hundred men under your command, there just might be"
     putStrLn "hope for you after all.\n"
     putStrLn "You should look around, talk to them while it's not busy or sail to cross the sea and reach home.\n"
-    putStrLn "You can also check the current size of your crew by typing crewCount.\n"
     play
 
 play :: IO ()
 play = game_loop init_state
 
+-- Game Loop
 game_loop :: State -> IO ()
 game_loop state
   | game_over state = do
@@ -99,8 +97,7 @@ game_loop state
     putStr "|: "
     hFlush stdout
     input <- getLine
-    let newStateIO = process_input input state
-    newState <- newStateIO
+    newState <- process_input input state
     game_loop newState
 
 -- Main Program

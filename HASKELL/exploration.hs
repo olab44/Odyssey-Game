@@ -299,7 +299,7 @@ describe state
         putStrLn "The air is thick with mystery, and your instincts warn you of hidden dangers."
         putStrLn "To continue, you can talk to Hermes or confront Circe to face her enchantments."
         return state
-  | you_are_at state == "underworld_sea" = do 
+  | you_are_at state == "underworld_sea" = do
     putStrLn "You have reached the mysterious and eerie waters of the Underworld."
     return state
   | you_are_at state == "underworld" = do
@@ -307,7 +307,7 @@ describe state
     return state
   | you_are_at state == "giants_sea" = do
     putStrLn "You have entered the territory of dangerous giants! They begin hurling massive stones at your ships."
-    updatedState <- giantsSea state 
+    updatedState <- giantsSea state
     return updatedState
   | you_are_at state == "sirens_sea" = do
     putStrLn "The waters are calm but ominous as you approach the domain of the Sirens."
