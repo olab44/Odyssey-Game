@@ -156,23 +156,25 @@ meet_polyphemus state = do
     name <- getLine
     putStrLn $ "'Are you the one who killed my sheep, " ++ name ++ "? My favourite sheep. You will pay for what you did"
     putStrLn "with your own blood.'"
-    if "wine" `elem` holding state then do
-        putStrLn "At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim"
-        putStrLn "for the cyclops' still opened mouth. The wine from lotus flowers makes his thoughts and movements"
-        putStrLn "sluggish. He manages to land only a few blows."
-        crew_death 6 state
-    else do
-        putStrLn "The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave's floor."
-        crew_death 44 state
-    if name == "nobody" then do
-        putStrLn "But no one comes to his aid."
-        putStrLn "It's your opportunity to leave the cave, embark on a ship and get the hell away."
-        return state
-    else do
-        putStrLn "Then there's a sound of heavy steps coming from the direction of the only exit."
-        putStrLn "There are more of them. Much, much more."
-        putStrLn "You're not leaving this cave alive."
-        return (finish state)
+    stateAfterFight <- if "wine" `elem` holding state 
+        then do
+            putStrLn "At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim"
+            putStrLn "for the cyclops' still opened mouth. The wine from lotus flowers makes his thoughts and movements"
+            putStrLn "sluggish. He manages to land only a few blows."
+            crew_death 6 state
+        else do
+            putStrLn "The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave's floor."
+            crew_death 44 state
+    if name == "nobody" 
+        then do
+            putStrLn "But no one comes to his aid."
+            putStrLn "It's your opportunity to leave the cave, embark on a ship and get the hell away."
+            return stateAfterFight
+        else do
+            putStrLn "Then there's a sound of heavy steps coming from the direction of the only exit."
+            putStrLn "There are more of them. Much, much more."
+            putStrLn "You're not leaving this cave alive."
+            return (finish stateAfterFight)
 
 
 lookup_land :: Location -> Maybe Location
