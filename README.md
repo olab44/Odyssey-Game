@@ -24,7 +24,7 @@ W przypadku braku tego pliku należy urchomić skrypt budujący:
 
     $ ./build.sh
 
-- liczba linii kodu:
-- sumaryczny rozmiar plików:
+- liczba linii kodu: 1254
+- sumaryczny rozmiar plików: 78,25KB
 
 # SMALLTALK
