@@ -1,5 +1,5 @@
 module ActII.Underworld where
-import State
+import Types
 
 
 parseFerryItem :: String -> Maybe FerryItem

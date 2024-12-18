@@ -1,5 +1,6 @@
 module ActII.GiantsSea where
-import State
+import Types
+import WorldMap
 
 giantsSea :: State -> IO State
 giantsSea state = do
@@ -13,6 +14,6 @@ giantsSea state = do
     putStrLn $ "New crew count after loss: " ++ show newCrewCount
     putStrLn $ "The giants' attack reduces your crew by " ++ show loss ++ " members."
     putStrLn "You have no choice but to retreat south."
-    let newplace = "circe_sea"
+    let newplace = circe_sea
     let finalState = updatedState { you_are_at = newplace}
     return finalState

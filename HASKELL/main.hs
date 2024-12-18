@@ -1,8 +1,7 @@
 module Main (main) where
-import InputProcess
 import Utils
-import State
-import System.IO (hFlush, stdout)
+import GameLoop (play)
+import WorldMap
 
 -- Welcome Screen
 welcome :: IO ()
@@ -80,25 +79,6 @@ start = do
     putStrLn "hope for you after all.\n"
     putStrLn "You should look around, talk to them while it's not busy or sail to cross the sea and reach home.\n"
     play
-
-play :: IO ()
-play = game_loop init_state
-
--- Game Loop
-game_loop :: State -> IO ()
-game_loop state
-  | game_over state = do
-    putStrLn ""
-    putStrLn (green ++ "------------------------------ THE END -----------------------------" ++ reset)
-    putStrLn (yellow ++ "                      Thank you for playing!" ++ reset)
-    putStrLn (green ++ "--------------------------------------------------------------------" ++ reset)
-    return ()
-  | otherwise = do
-    putStr "|: "
-    hFlush stdout
-    input <- getLine
-    newState <- process_input input state
-    game_loop newState
 
 -- Main Program
 main :: IO ()

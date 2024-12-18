@@ -1,7 +1,7 @@
 module Exploration where
 import ActII.GiantsSea
 import ActII.Sirens
-import State
+import Types
 import Utils
 import Data.Map (Map)
 import Data.String
@@ -15,65 +15,23 @@ import System.Random (randomRIO)
 import Data.List (find)
 import Prelude
 import Prelude (putStrLn, putStr)
-
-
-
-
-sea_paths :: [((String, String), String)]
-sea_paths =
-  -- act I
-  [ (("open_sea", "north"), "ithaca_sea")
-  , (("open_sea", "west"), "lotus_sea")
-  , (("ithaca_sea", "south"), "open_sea")
-  , (("lotus_sea", "north"), "polyphemus_sea")
-  , (("lotus_sea", "east"), "open_sea")
-  , (("polyphemus_sea", "east"), "ithaca_sea")
-  , (("polyphemus_sea", "south"), "lotus_sea")
-  -- -- act II
-  , (("circe_sea", "north"), "giants_sea")
-  , (("circe_sea", "east"), "sirens_sea")
-  , (("circe_sea", "west"), "underworld_sea")
-  , (("underworld_sea", "north"), "giants_sea")
-  , (("underworld_sea", "east"), "circe_sea")
-  , (("sirens_sea", "north"), "giants_sea")
-  , (("sirens_sea", "south"), "scylla_charybdis_sea")
-  , (("giants_sea", "south"), "circe_sea")
-  , (("scylla_charybdis_sea", "east"), "sun_god_sea")
-  , (("sun_god_sea", "south"), "calypso_island")
-  ]
-
-
-lands :: [(String, String)]
-lands =
-  [ ("lotus_sea", "lotus_island"),
-    ("polyphemus_sea", "polyphemus_cave"),
-    ("open_sea", "aeolus_island"),
-    ("circe_sea", "circe_island"),
-    ("underworld_sea", "underworld"),
-    ("sun_god_sea", "sun_god_island")
-  ]
-
-
-sail_debug :: String -> State -> IO State
-sail_debug location state = do
-  putStrLn $ "Moved to " ++ location ++ "."
-  return state {you_are_at = location}
-
+import WorldMap
 
 sail :: String -> State -> IO State
 sail direction state
   | disembarked state = do
     putStrLn "You need to embark first."
     return state
-  | you_are_at state == "ithaca_sea" && direction /= "south" = ithacaSeaStorm state
+  | you_are_at state == ithaca_sea && direction /= "south" = ithacaSeaStorm state
   | otherwise = case lookup_sea_path (you_are_at state) direction of
       Just destination ->
-        if direction == "west" && you_are_at state == "circe_sea" && not (accessToUnderworld state) then do
+        if direction == "west" && you_are_at state == circe_sea && not (accessToUnderworld state) then do
           putStrLn "The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe's Sea."
           return state
         else do
-          putStrLn "Sailing..."
-          return state {you_are_at = destination}
+          let newState = state {you_are_at = destination}
+          describe newState
+          return newState
       Nothing -> do
         putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
         return state
@@ -114,47 +72,46 @@ ithacaSeaStorm state
     putStrLn "The reality is not. The bag lies open. The raging storm tears at your ships with vengeance, vicious"
     putStrLn "currents leading you to distant shores far, far away from Ithaca."
     let newHolding = filter (/= "wind-bag") (holding state)
-    return state { holding = newHolding, you_are_at = "circe_sea" }
+    return state { holding = newHolding, you_are_at = circe_sea }
   | crew state > 150 = do
     putStrLn "\nIt turns out you can't beat the force of nature that easily. You lose ships - the screams of over"
-    putStrLn "a hundred men are drowned out by the storm as they disappear below the waves.\n"
+    putStrLn "a hundred men are drowned out by the storm as they disappear below the waves."
     let updatedState = state { crew = crew state - 150 }
     newPlace <- randomPlace
-    putStrLn "\nYou can't control your course as the currents are too strong. You should look around to see where you've ended up."
+    putStrLn "You can't control your course as the currents are too strong. You should look around to see where you've ended up."
     return updatedState { you_are_at = newPlace }
   | otherwise = do
     putStrLn "\nThe storm is your final fight, the only thing still blocking your way home - and so you're ready"
-    putStrLn "to risk it all, look for the way through even when there seems to be none.\n"
+    putStrLn "to risk it all, look for the way through even when there seems to be none."
     putStrLn "\nYou try your best...\n"
-    putStrLn "\nIt's just not enough.\n"
-    putStrLn "\nYour ship is the last one from the fleet to fall victim to the crashing waves.\n"
+    putStrLn "It's just not enough."
+    putStrLn "Your ship is the last one from the fleet to fall victim to the crashing waves."
     return $ finish state
 
 -- Pomocnicza funkcja do losowania nowego miejsca
-randomPlace :: IO String
+randomPlace :: IO Location
 randomPlace = do
-  let places = ["lotus_sea", "ithaca_sea", "polyphemus_sea", "open_sea"]
+  let places = [lotus_sea, ithaca_sea, polyphemus_sea, open_sea]
   idx <- randomRIO (0, length places - 1)
   return (places !! idx)
 
-
-lookup_sea_path :: String -> String -> Maybe String
+lookup_sea_path :: Location -> String -> Maybe Location
 lookup_sea_path current direction = lookup (current, direction) sea_paths
-
 
 embark :: State -> IO State
 embark state
-  | you_are_at state == "polyphemus_cave" = do
+  | you_are_at state == polyphemus_cave = do
       putStrLn "\nYou manage to embark on a ship and leave the Cyclops' cave behind."
-      putStrLn "As you do, you can't shake the feeling of being watched, but the eyes are not only those of your men nor the foe you've escaped from."
-      putStrLn "The gods have taken an interest in your actions. Something in the air has changed."
-      let newState = state { you_are_at = "open_sea", disembarked = False, aeolus_island = True }
+      putStrLn "As you do, you can't shake the feeling of being watched, but the eyes are not only those of your men nor the foe"
+      putStrLn "you've escaped from. The gods have taken an interest in your actions. Something in the air has changed."
+      putStrLn "You end up back at the same open sea, but maybe you should look around more."
+      let newState = state { you_are_at = open_sea, disembarked = False, aeolusAccess = True }
       return newState
   | disembarked state = do
-      putStrLn "Embarking!"
       case lookup_sea (you_are_at state) of
         Just sea -> do
           let newState = state { you_are_at = sea, disembarked = False }
+          describe newState
           return newState
         Nothing -> do
           putStrLn "There's no available sea to embark on."
@@ -169,8 +126,8 @@ disembark state
   | disembarked state = do
     putStrLn "You're already on land."
     return state
-  | you_are_at state == "polyphemus_sea" =
-      if aeolus_island state then do
+  | you_are_at state == polyphemus_sea =
+      if aeolusAccess state then do
         putStrLn "Going back to the Cyclops' cave after all that has happened is a suicide. Your crew knows it"
         putStrLn "and refuses to risk it. You should know better, too."
         return state
@@ -178,7 +135,7 @@ disembark state
         putStrLn "At the entrance of a cave, you find a herd of sheep - food much tastier than anything you"
         putStrLn "have left from your supplies. Some of your men stay behind, while the rest of you ventures"
         putStrLn "onward to search the tunnels."
-        let newState = state { you_are_at = "polyphemus_cave", disembarked = True }
+        let newState = state { you_are_at = polyphemus_cave, disembarked = True }
         meet_polyphemus newState
   | otherwise =
     case lookup_land (you_are_at state) of
@@ -220,145 +177,38 @@ meet_polyphemus state = do
         return (finish state)
 
 
-lookup_land :: String -> Maybe String
+lookup_land :: Location -> Maybe Location
 lookup_land sea = lookup sea lands
 
 
-lookup_sea :: String -> Maybe String
+lookup_sea :: Location -> Maybe Location
 lookup_sea land = fmap fst (find ((== land) . snd) lands)
 
 
-look :: State -> IO State
-look state = do
-  let location = you_are_at state
-  describe state
-
-
 describe :: State -> IO State
-describe state
-  | you_are_at state == "lotus_sea" = do
-    putStrLn "There's solid land nearby - you notice the glowing light of a fire. It seems inviting."
-    return state
-  | you_are_at state == "lotus_island" = do
-    putStrLn "The island is calm and serene, the whole atmosphere making you sleepy. You see a lake"
-    putStrLn "that's surrounded by plain houses. The people milling around pay you no mind at all,"
-    putStrLn "their thoughts far away."
-    putStrLn ""
-    putStrLn "There's plenty of food on their tables - strange, glowing fruits, which you recognize as"
-    putStrLn "mind-numbing lotus. There's also an abundance of wine - surely the lotus-eaters wouldn't"
-    putStrLn "be mad, were you to take a jug for yourself."
-    return state
-  | you_are_at state == "ithaca_sea" && "wind-bag" `elem` holding state = do
-    putStrLn "The sky is clear, the water smooth - no storm, no tidal wave. You see Ithaca - your destination, your"
-    putStrLn "kingdom, your home - on the horizon. You can already feel the ghost of your wife's embrace."
-    return state
-  | you_are_at state == "ithaca_sea" = do
-    putStrLn "Your way is blocked by giant waves and giant storms. You should probably turn back south, towards"
-    putStrLn "calmer waters - but Ithaca's never been closer in the last ten years and the way home is through."
-    return state
-  | you_are_at state == "polyphemus_sea" = do
-      putStrLn "You're not far from an island, rugged shoreline making way to green fields and rocky mountains"
-      putStrLn "full of caves. One cave in particular looks easy to reach."
-      return state
-  | you_are_at state == "polyphemus_cave" = do
-      putStrLn "The cave is dark and musty, even with a lit torch you barely see more than a few steps ahead."
-      putStrLn "You navigate mostly by the sound of the sea waves to find your way back."
-      return state
-  | you_are_at state == "open_sea" && "wind-bag" `elem` holding state = do
-      putStrLn "Calm open sea and the island of a god, nothing more for you here. You instinctively look"
-      putStrLn "towards north, where the sky's a clear expanse of blue."
-      return state
-  | you_are_at state == "open_sea" && aeolus_island state = do
-      putStrLn "Where once was nothing but water, now lies an island, floating on the waves. The blowing winds feel"
-      putStrLn "different, too, and you can't stop the thought - the home of the wind god. It means hope, a lone"
-      putStrLn "chance of getting help against the storm, if only you disembark and beg."
-      return state
-  | you_are_at state == "open_sea" = do
-      putStrLn "Open sea stretches in all directions, no land in sight. Were you to believe your charts,"
-      putStrLn "Ithaca lies north. North, where you can see a mass of dark clouds covering the sky."
-      return state
-  | you_are_at state == "aeolus_island" = do
-    putStrLn "The home of the wind god, Aeolus, is just as unique as its owner might suggest. Loud and playful"
-    putStrLn "with various puffs of clouds twisting and turning in the air, as if alive."
-    putStrLn "Aeolus himself flies around as well, never in one place for long. You feel his gaze following you."
-    return state
-  | you_are_at state == "circe_sea" = do
-    putStrLn "The waters here feel thick with enchantment, and Circe's island lies ominously ahead."
-    return state
-  | you_are_at state == "circe_island" =
-      if visitedUnderworld state
-      then do
-        putStrLn "You step back onto Circe's island, feeling the weight of your journey to the Underworld lingering upon you."
-        putStrLn "The familiar sights of her enchanted island are a strange comfort after the shadows of Hades."
-        putStrLn "Circe greets you with a knowing look, sensing the trials you’ve endured and the wisdom you have gained."
-        putStrLn "It’s clear she has more guidance to offer, should you seek her counsel."
-        putStrLn "You may now talk to Circe to ask for further instructions on your journey."
+describe state = do
+    putStrLn $ describeLocation state
+
+    -- Handle special locations with auto actions
+    if you_are_at state == giants_sea then do
+        updatedState <- giantsSea state
+        return updatedState
+    else if you_are_at state == sirens_sea then do
+        putStrLn "You must now decide whether to block your own ears or not."
+        putStrLn "Type 'plug_ears' if you want to block your ears or 'leave_ears_open' if you want to hear the Sirens' song"
+        choice <- getLine
+        newState <- processSirensChoice choice state
+        return newState
+    else if you_are_at state == ithaca_sea then do
+        return (finish state)
+    else
         return state
-      else do
-        putStrLn "After disembarking on Circe's island, you step into a lush, enchanted forest."
-        putStrLn "The air is thick with mystery, and your instincts warn you of hidden dangers."
-        putStrLn "To continue, you can talk to Hermes or confront Circe to face her enchantments."
-        return state
-  | you_are_at state == "underworld_sea" = do
-    putStrLn "You have reached the mysterious and eerie waters of the Underworld."
-    return state
-  | you_are_at state == "underworld" = do
-    putStrLn "You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx."
-    return state
-  | you_are_at state == "giants_sea" = do
-    putStrLn "You have entered the territory of dangerous giants! They begin hurling massive stones at your ships."
-    updatedState <- giantsSea state
-    return updatedState
-  | you_are_at state == "sirens_sea" = do
-    putStrLn "The waters are calm but ominous as you approach the domain of the Sirens."
-    putStrLn "In the distance, their figures are barely visible, their songs ready to ensnare anyone who listens."
-    putStrLn "You must now decide whether to block your own ears or not."
-    putStrLn "Type plug_ears if you want to block your ears or leave_ears_open if you want to hear the Sirens' song"
-    choice <- getLine
-    newState <- processSirensChoice choice state
-    return newState
-  | you_are_at state == "scylla_charybdis_sea" = do
-    putStrLn "The sea grows treacherous as you approach the domain of Scylla and Charybdis."
-    putStrLn "To your left, you see Scylla's ominous cliffs, while Charybdis churns the water violently to your right."
-    putStrLn "You must choose which path to take to continue."
-    putStrLn "Type sail_scylla to navigate past Scylla or sail_charybdis to risk waters near Charybdis."
-    return state
-  | you_are_at state == "sun_god_sea" = do
-    putStrLn "A violent storm catches your ship, forcing you to seek refuge on a nearby island."
-    putStrLn "This is the sacred island of the Sun God, Helios, where his holy cattle roam"
-    return state
-  | you_are_at state == "sun_god_island" = do
-      putStrLn "You disembark onto the island, hoping the storm will soon pass."
-      putStrLn "Unfortunately, the storm shows no sign of stopping, and you will need to stay here longer."
-      putStrLn "Your food supplies are exhausted, and the crew is looking to you for guidance."
-      putStrLn "You had better talk to them for advice."
-      return state
-  | you_are_at state == "calypso_island" = do
-    putStrLn "You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen."
-    putStrLn "The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground."
-    putStrLn "Your crew is no loger alive, your ship is gone. You are left all alone."
-    putStrLn "When you wake up, the first thing you see is a woman, a goddess, who introduces herself as Calypso."
-    putStrLn "She is beautiful, but you want to return home. You can try asking her how to leave."
-    return state
-  | you_are_at state == "ithaca" = do
-    putStrLn "At last, you set foot on Ithaca, your homeland."
-    putStrLn "After all the trials, you've made it home, where every person on the street talks about"
-    putStrLn "the queen's challenge."
-    putStrLn "\nBut that's a story for another day."
-    putStrLn "After years lost at sea, battles fought, and gods defied, you've finally reached Ithaca."
-    putStrLn "You've proven that courage and loyalty can overcome even the wrath of gods.\n"
-    putStrLn "Welcome home, Odysseus."
-    return (finish state)
-  | otherwise = do
-    putStrLn "There's nothing special around here."
-    return state
 
 
 crew_count :: State -> IO State
 crew_count state = do
   putStrLn $ "You have " ++ show (crew state) ++ " crew members remaining."
   return state
-
 
 crew_death :: Int -> State -> IO State
 crew_death n state = do
@@ -375,10 +225,10 @@ take_item object state
   | object `elem` holding state = do
     putStrLn $ "You already have the " ++ object ++ "."
     return state
-  | you_are_at state == "aeolus_island" && wind_bag_available state = do
+  | you_are_at state == aeolus_island && wind_bag_available state = do
     putStrLn $ "You pick up the " ++ object ++ "."
     return state  { holding = object : holding state }
-  | you_are_at state == "lotus_island" && object == "wine" = do
+  | you_are_at state == lotus_island && object == "wine" = do
     putStrLn $ "You pick up the " ++ object ++ "."
     return state  { holding = object : holding state }
   | otherwise = do
@@ -388,13 +238,13 @@ take_item object state
 
 talk :: String -> State -> IO State
 talk person state
-  | you_are_at state == "lotus_island" && person == "lotus_eaters" = do
+  | you_are_at state == lotus_island && person == "lotus_eaters" = do
       putStrLn "It takes a while to find someone present enough to talk to you. Most of the lotus-eaters"
       putStrLn "are too far gone to even notice you. The talk itself doesn't amount to much, though."
       putStrLn "The old woman speaks of great dangers up north, but she assures you everything is far"
       putStrLn "easier with wine."
       return state
-  | you_are_at state == "polyphemus_cave" && (person == "polyphemus" || person == "cyclops") = do
+  | you_are_at state == polyphemus_cave && (person == "polyphemus" || person == "cyclops") = do
       putStrLn "Wrong decision."
       putStrLn "\nPolyphemus doesn't hear any of the words you've spoken, but he does hear your voice and"
       putStrLn "blindly strikes in your direction, enraged. You barely avoid being crushed to death."
@@ -403,19 +253,19 @@ talk person state
           crew_death 4 state
       else
           return state
-  | you_are_at state == "open_sea" && "wind-bag" `elem` holding state && person == "crew" = do
+  | you_are_at state == open_sea && "wind-bag" `elem` holding state && person == "crew" = do
       putStrLn "The crew's overly eager about the wind-bag, you can't help but notice. They whisper of"
       putStrLn "treasure and trail off as soon as you come close - clearly not in a mood to talk."
       return state
-  | you_are_at state == "open_sea" && aeolus_island state && person == "crew" = do
+  | you_are_at state == open_sea && aeolusAccess state && person == "crew" = do
       putStrLn "Your second-in-command doesn't at all like the idea of asking a god for help. 'They're easy to"
       putStrLn "anger, captain, and there's only so much time before your luck with them runs out for good.'"
       return state
-  | you_are_at state == "open_sea" && person == "crew" = do
+  | you_are_at state == open_sea && person == "crew" = do
       putStrLn "Your men tell you that there's nothing to look for east and south from here, but west - west"
       putStrLn "is where the birds fly, which probably means solid land."
       return state
-  | you_are_at state == "aeolus_island" && not (wind_bag_available state) = do
+  | you_are_at state == aeolus_island && not (wind_bag_available state) = do
       putStrLn "You kneel down and describe your situation, knowing that the god can hear."
       putStrLn "Your ask for assistance is first met with disheartening nothing, but then - laughter."
       putStrLn "\nAeolus comes to a stop right before you. 'I suppose we could play a game, Odysseus of Ithaca.'"
@@ -425,13 +275,13 @@ talk person state
       putStrLn "\nAnd with that, he's gone on a breeze again, leaving a tied wind-bag at your feet."
       let newState = state { wind_bag_available = True }
       return newState
-  | you_are_at state == "circe_island" && person == "hermes" = do
+  | you_are_at state == circe_island && person == "hermes" = do
     putStrLn "Hermes, appearing like a ghostly figure, approaches with wisdom and a gift."
     putStrLn "Hermes offers you a magical herb, saying it will protect you from Circe's spells. You may need it if you choose to confront her."
     putStrLn "You now have a magical herb in your possession."
     let newState = state {magic_herb_available = True}
     return newState
-  | you_are_at state == "circe_island" && person == "circe" && visitedUnderworld state == False = do
+  | you_are_at state == circe_island && person == "circe" && visitedUnderworld state == False = do
         putStrLn "Circe nods in understanding, sensing your readiness to continue your journey."
         putStrLn "'If you wish to return to Ithaca,' she says, 'you must first venture west, to the Underworld, then directly come back to me.'"
         putStrLn "But heed my warning — avoid the north, for giants dwell there, and their strength is unmatched."
@@ -442,7 +292,7 @@ talk person state
                 }
         putStrLn "With her guidance, you feel prepared to set sail once more."
         return newState
-  | you_are_at state == "circe_island" && person == "circe" && visitedUnderworld state == True = do
+  | you_are_at state == circe_island && person == "circe" && visitedUnderworld state == True = do
         let currentCrew = crew state
         putStrLn "Circe sees the weight of your journey and speaks again with wisdom:"
         putStrLn "'Your next trial, Odysseus, is the Sirens' Sea, where their hypnotic singing lures sailors to destruction."
@@ -468,12 +318,12 @@ talk person state
         putStrLn "Those unprotected by wax will perish under the Sirens' spell."
         putStrLn "When ready, you may depart towards the Sirens' Sea."
         return newState
-  | you_are_at state == "circe_island" && crew state > 0 = do
+  | you_are_at state == circe_island && crew state > 0 = do
         putStrLn "Your crew gathers, their expressions serious. 'Captain,' they say, 'it’s time we resume our journey to Ithaca.'"
         putStrLn "They remind you of the goal that has driven you across the seas, and their loyalty fills you with resolve."
         putStrLn "You can now TALK TO CIRCE to seek further guidance from her."
         return state
-  | you_are_at state == "underworld" && person == "charon" = do
+  | you_are_at state == underworld && person == "charon" = do
         putStrLn "Charon, the ferryman, explains the rules of the River Styx."
         putStrLn "He says he will help you cross, but only if you solve the puzzle."
         putStrLn "He can only take one thing at a time: the crew, the wine, or Cerberus, the three-headed dog."
@@ -488,7 +338,7 @@ talk person state
         putStrLn "X can be 'crew', 'wine', 'cerber', or 'none'."
         putStrLn "Please make sure to follow the correct order to avoid losing crew members."
         return state
-  | you_are_at state == "underworld" && person == "tiresias" = do
+  | you_are_at state == underworld && person == "tiresias" = do
       putStrLn "Tiresias, the prophet, speaks to you with grave solemnity:"
       putStrLn "I see your future, Odysseus. You may reach Ithaca, but the path will be fraught with hardships."
       putStrLn "The island of Helios and its sacred cattle will be your doom if you dare approach them."
@@ -496,33 +346,33 @@ talk person state
       putStrLn "The ferryman urges you to hurry, though he offers you the chance to talk to one of three shades: your mother, Achilles, or Agamemnon."
       putStrLn "But choose wisely, for you can only speak with one of them."
       return state { visitedUnderworld = True }
-  | you_are_at state == "underworld" && longerStay state = do
+  | you_are_at state == underworld && longerStay state = do
         putStrLn "A spectral figure appears before you—your mother, Anticleia."
         putStrLn "'My dear son, I died of grief and longing for you.'"
         putStrLn "The days of our separation broke my heart. I wish I could have seen you return to Ithaca."
         putStrLn "With a soft sigh, she hands you a charm—a Charybdis Lure, a precious item that may one day save you from the whirlpool."
         if not (longerStay state) then do
             putStrLn "Now you must return to your ship. Further conversations are no longer possible."
-            return state { charybdis_lure = True, accessToUnderworld = False, disembarked = False, you_are_at = "underworld_sea" }
+            return state { charybdis_lure = True, accessToUnderworld = False, disembarked = False, you_are_at = underworld_sea }
         else
             return state { charybdis_lure = True, longerStay = False }
-  | you_are_at state == "underworld" && person == "achilles" = do
+  | you_are_at state == underworld && person == "achilles" = do
       putStrLn "Achilles, the great warrior, speaks to you with fiery intensity:"
       putStrLn "'Odysseus, your journey is long, and I know the struggles you face. The gods play cruel games with you."
       putStrLn "But you must know, I feel no peace here in the Underworld. The thought of my death haunts me still.'"
       putStrLn "Achilles decides to speak to Charon to extend your stay. You now have time to speak to both your mother and Agamemnon for any wisdom they can provide."
       return state { longerStay = True }
-  | you_are_at state == "underworld" && person == "agamemnon" = do
+  | you_are_at state == underworld && person == "agamemnon" = do
         putStrLn "Agamemnon, the great king of Mycenae, speaks to you from the shadows:"
         putStrLn "'I was betrayed by my wife, Clytemnestra, and murdered upon my return to Mycenae. But you, Odysseus, will fare better, I hope.'"
         putStrLn "He offers you a map of the seas ahead—knowledge of the islands that await you in Act II."
         putStrLn "Type 'show_map' to look at it."
         if not (longerStay state) then do
             putStrLn "Now you must return to your ship. Further conversations are no longer possible."
-            return state { mapAvailable = True, accessToUnderworld = False, disembarked = False, you_are_at = "underworld_sea" }
+            return state { mapAvailable = True, accessToUnderworld = False, disembarked = False, you_are_at = underworld_sea }
         else
             return state { mapAvailable = True, longerStay = False }
-  | you_are_at state == "sun_god_island" && person == "crew" = do
+  | you_are_at state == sun_god_island && person == "crew" = do
       putStrLn "Your crew gathers around, their faces pale with hunger."
       putStrLn "One of them speaks up: 'Captain, we cannot last without food. These cattle are our only chance.'"
       putStrLn "You remember Tiresias's warning not to eat the sacred cattle of Helios."
@@ -530,11 +380,11 @@ talk person state
       putStrLn "Type \"eat_cattle\" to let the crew feast and risk the wrath of the gods."
       putStrLn "Type \"do_not_eat_cattle\" to let your crew starve."
       return state
-  | you_are_at state == "calypso_island" && person == "calypso" && hasAllMaterials (inventory state) = do
+  | you_are_at state == calypso_island && person == "calypso" && hasAllMaterials (inventory state) = do
       putStrLn "Why don't you want to stay with me? I would give you everything you need."
       putStrLn "But I see that nothing can deter you from leaving me. If you truly wish to leave, the correct order to build the raft is cloth first, then rope, then logs, then wood."
       return state
-  | you_are_at state == "calypso_island" && person == "calypso" = do
+  | you_are_at state == calypso_island && person == "calypso" = do
       putStrLn "Calypso gazes at you and says: 'Why hurry to leave? This island is paradise, and I will care for you here forever.'"
       putStrLn "To return to the life you truly seek, you must craft a raft that can withstand Poseidon's storms."
       putStrLn "Gather the resources of the island: wood, logs, rope, and cloth. Only then will you be able to return home."
@@ -543,82 +393,63 @@ talk person state
       putStrLn "It's not a time nor place for a talk with someone who's busy - or someone who's not even there."
       return state
 
-
-
 hasAllMaterials :: Inventory -> Bool
 hasAllMaterials inv = all (\(mat, reqAmt) -> Map.findWithDefault 0 mat inv >= reqAmt) requiredMaterials
 
 gather :: Material -> State -> IO State
 gather mat state
-  | you_are_at state /= "calypso_island" || not (elem mat (map fst requiredMaterials)) = do
+  | you_are_at state /= calypso_island || not (elem mat (map fst requiredMaterials)) = do
     putStrLn "There's no need to gather anything like that now."
     return state
   | hasAllMaterials (inventory state) = do
     putStrLn "You have gathered all necessary materials for the raft! You can start building it."
     return state
   | otherwise = do
-      let newInventory = addMaterial mat (inventory state)
-      putStrLn $ "You have gathered " ++ show (Map.findWithDefault 0 mat newInventory) ++ " " ++ mat ++ "(s) already."
+      let (response, newInventory) = addMaterial mat (inventory state)
+      putStrLn response
       return state {inventory = newInventory}
 
-addMaterial :: Material -> Inventory -> Inventory
+addMaterial :: Material -> Inventory -> (String, Inventory)
 addMaterial mat inv =
   let currentAmt = Map.findWithDefault 0 mat inv
       requiredAmt = fromMaybe 0 (lookup mat requiredMaterials)
-   in if currentAmt < requiredAmt
-        then Map.insert mat (currentAmt + 1) inv
-        else inv
+      newInv = Map.insert mat (currentAmt + 1) inv
+    in if currentAmt < requiredAmt
+      then ("You have gathered " ++ show (Map.findWithDefault 0 mat newInv) ++ " of " ++ mat ++ " so far.", newInv)
+      else ("You have enough of " ++ mat ++ ".", inv)
 
 build :: Material -> State -> IO State
-build mat state =
-  if hasAllMaterials (inventory state)
-    then
-      let steps = raftStepsCompleted state
-      in case mat of
-        "logs" ->
-          if Base `elem` steps
-            then do
-              putStrLn "You have to build something else."
-              return state
-            else do
-              putStrLn "You lay the base from logs as the foundation of your raft."
-              return state {raftStepsCompleted = Base : steps}
-        "wood" ->
-          if Base `elem` steps && Binding `elem` steps && not (Frame `elem` steps)
-            then do
-              putStrLn "You arrange the wood into a stable frame on top of the base."
-              return state {raftStepsCompleted = Frame : steps}
-            else do
-              putStrLn "You have to build something else."
-              return state
-        "rope" ->
-          if Base `elem` steps && not (Binding `elem` steps)
-            then do
-              putStrLn "You tie everything together with rope to stabilize the structure."
-              return state {raftStepsCompleted = Binding : steps}
-            else do
-              putStrLn "You have to build something else."
-              return state
-        "cloth" ->
-          if Base `elem` steps && Frame `elem` steps && Binding `elem` steps && not (Mast `elem` steps)
-            then do
-              putStrLn "You set up the mast. The raft is complete! You can now attempt to escape Calypso's Island."
-              return state {raftStepsCompleted = Mast : steps}
-            else do
-              putStrLn "You have to build something else."
-              return state
-        _ -> do
-          putStrLn "Nothing to build with that."
-          return state
-    else do
+build mat state
+  | not (hasAllMaterials (inventory state)) = do
       putStrLn "Gather the materials first."
       return state
+  | otherwise = case mat of
+      "logs" -> buildStep Base "You lay the base from logs as the foundation of your raft." Base state
+      "wood" -> buildStep Frame "You arrange the wood into a stable frame on top of the base." Frame state
+      "rope" -> buildStep Binding "You tie everything together with rope to stabilize the structure." Binding state
+      "cloth" -> buildStep Mast "You set up the mast. The raft is complete! You can now attempt to escape Calypso's Island." Mast state
+      _ -> do
+          putStrLn "Nothing to build with that."
+          return state
+  where
+    buildStep step message requiredStep state
+      | requiredConditions state step = do
+          putStrLn message
+          return state { raftStepsCompleted = step : raftStepsCompleted state }
+      | otherwise = do
+          putStrLn "You have to build something else."
+          return state
+    requiredConditions state step = case step of
+      Base -> not (Base `elem` raftStepsCompleted state)
+      Frame -> Base `elem` raftStepsCompleted state && not (Frame `elem` raftStepsCompleted state)
+      Binding -> Base `elem` raftStepsCompleted state && not (Binding `elem` raftStepsCompleted state)
+      Mast -> Base `elem` raftStepsCompleted state && Frame `elem` raftStepsCompleted state && Binding `elem` raftStepsCompleted state && not (Mast `elem` raftStepsCompleted state)
 
 escape :: State -> IO State
 escape state
   | Mast `elem` raftStepsCompleted state = do
     putStrLn "With your raft complete, you set out to sea, leaving Calypso's Island behind."
-    let newState = state { you_are_at = "ithaca", disembarked = False }
+    let newState = state { you_are_at = ithaca, disembarked = False }
     describe newState
   | otherwise = do
     putStrLn "You cannot leave without completing the raft first."

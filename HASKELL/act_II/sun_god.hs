@@ -1,6 +1,6 @@
 module ActII.SunGod where
-import State 
-
+import Types
+import WorldMap
 
 eatCattle :: State -> IO State
 eatCattle state = do
@@ -39,14 +39,14 @@ completeElixir state = do
 
 continueJourney :: State -> IO State
 continueJourney state
-    | you_are_at state == "sun_god_island" =
+    | you_are_at state == sun_god_island =
         if strength_elixir state
             then do
                 putStrLn "As you leave the island, a thunderous voice echoes: 'For your desecration, you shall be punished!'"
                 putStrLn "The sea rages as a powerful storm descends upon your ship."
                 putStrLn "Thanks to the Elixir of Strength, you alone withstand the gods' wrath and survive."
                 putStrLn "Your crew perishes, and you lose consciousness..."
-                return state { you_are_at = "calypso_island", disembarked = True, crew = 1 }
+                return state { you_are_at = calypso_island, disembarked = True, crew = 1 }
             else do
                 putStrLn "As you sail eastward, the wrath of the gods descends upon you."
                 putStrLn "A powerful storm engulfs your ship, smashing it to pieces."

@@ -1,5 +1,5 @@
 module ActII.Sirens where
-import State
+import Types
 import Data.Maybe (fromMaybe)
 
 

@@ -1,5 +1,5 @@
 module ActII.Circe where
-import State
+import Types
 
 confrontCirce :: State -> IO State
 confrontCirce state

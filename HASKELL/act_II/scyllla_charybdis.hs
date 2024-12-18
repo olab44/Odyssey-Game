@@ -1,6 +1,7 @@
 module ActII.ScyllaCharybdis where
-import State
+import Types
 import System.Random (randomRIO)
+import WorldMap
 
 sail_scylla :: State -> IO State
 sail_scylla state = do
@@ -8,7 +9,7 @@ sail_scylla state = do
     case survivalRate of
         Just rate -> do
             putStrLn "You approach Scylla..."
-            randomChance <- randomRIO (0.0, 1.0) 
+            randomChance <- randomRIO (0.0, 1.0)
             if randomChance > rate
                 then do
                     putStrLn "Scylla strikes with terrifying speed, catching you off guard..."
@@ -39,4 +40,4 @@ proceed_to_sun_god_island :: State -> IO State
 proceed_to_sun_god_island state = do
     putStrLn "After surviving the perilous pass, a fierce storm catches you off guard."
     putStrLn "The raging waves drive your ship eastward, and you find yourselves on the shores of the Island of the Sun God."
-    return state { you_are_at = "sun_god_sea" }
+    return state { you_are_at = sun_god_sea }
