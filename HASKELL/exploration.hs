@@ -29,8 +29,7 @@ sail direction state
           putStrLn "The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe's Sea."
           return state
         else do
-          let newState = state {you_are_at = destination}
-          describe newState
+          newState <- describe state {you_are_at = destination}
           return newState
       Nothing -> do
         putStrLn "You set sail, but you either find nothing of note in that direction, or the way's impassable. You end up turning back."
@@ -110,8 +109,7 @@ embark state
   | disembarked state = do
       case lookup_sea (you_are_at state) of
         Just sea -> do
-          let newState = state { you_are_at = sea, disembarked = False }
-          describe newState
+          newState <- describe state { you_are_at = sea, disembarked = False }
           return newState
         Nothing -> do
           putStrLn "There's no available sea to embark on."
