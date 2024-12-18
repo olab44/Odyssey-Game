@@ -156,7 +156,7 @@ meet_polyphemus state = do
     name <- getLine
     putStrLn $ "'Are you the one who killed my sheep, " ++ name ++ "? My favourite sheep. You will pay for what you did"
     putStrLn "with your own blood.'"
-    stateAfterFight <- if "wine" `elem` holding state 
+    stateAfterFight <- if "wine" `elem` holding state
         then do
             putStrLn "At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim"
             putStrLn "for the cyclops' still opened mouth. The wine from lotus flowers makes his thoughts and movements"
@@ -165,7 +165,7 @@ meet_polyphemus state = do
         else do
             putStrLn "The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave's floor."
             crew_death 44 state
-    if name == "nobody" 
+    if name == "nobody"
         then do
             putStrLn "But no one comes to his aid."
             putStrLn "It's your opportunity to leave the cave, embark on a ship and get the hell away."
@@ -199,7 +199,7 @@ describe state = do
         choice <- getLine
         newState <- processSirensChoice choice state
         return newState
-    else if you_are_at state == ithaca_sea then do
+    else if you_are_at state == ithaca then do
         return (finish state)
     else
         return state
