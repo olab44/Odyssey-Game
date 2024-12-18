@@ -21,7 +21,8 @@ sail_scylla state = do
                     let loss = max 6 (round (0.06 * fromIntegral currentCrew))
                     let newCrewCount = currentCrew - loss
                     putStrLn $ "Scylla devours " ++ show loss ++ " of your crew members."
-                    proceed_to_sun_god_island state { crew = newCrewCount }
+                    newstate <-proceed_to_sun_god_island state { crew = newCrewCount }
+                    return newstate
 
 sail_charybdis :: State -> IO State
 sail_charybdis state = do
@@ -29,8 +30,8 @@ sail_charybdis state = do
         then do
             putStrLn "You use the mysterious Charybdis Lure, guiding your ship safely past the deadly whirlpool."
             putStrLn "The waters calm, and you find yourselves out of danger."
-            proceed_to_sun_god_island state
-            return state
+            newstate <- proceed_to_sun_god_island state
+            return newstate
         else do
             putStrLn "The whirlpool's powerful currents pull your ship into its deadly grasp."
             putStrLn "GAME OVER: Your ship and crew are lost to Charybdis."

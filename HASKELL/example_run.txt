@@ -1,0 +1,372 @@
+haskell_pretty][~/Documents/5 semestr/PARP/parp_24z/HASKELL]$ ./odyssey                       
+
+---------------------- THE ODYSSEY : THE GAME ----------------------
+
+                                                    _  _                
+                                                   ' \/ '              
+   _  _                         <|                                      
+    \/                  _'_______'___________'___                      
+                      /'                      //                        
+                    /'                       '/           _  _          
+                   |                       '/ \            \/         
+                   ||                      ||  \                       
+                  /`|                      `\   \                     
+        _==_     /  \\                      `\   \                  
+       //  //   /    `\                       \\  \                 
+       \\      /       \\                      \\  \             
+        \ \   /         `\\______________________\  \        ^%%  
+         `\ \/           /       | |             \   \/   ^%= ^%%=  
+           \\ \_______ _/_____ __|_|__ ___________\_/||   ^^     %^ 
+            `\\|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_/|/         %=%    
+ =_  %%!_   __\    _______________                 /   __.%% !^%% _^   
+^^%%^=%^=^^^%%^^\'/_)/_)_/_)__)/_)/)/)_)_'_'_'__//)/)/)/)%%=%^^^%^^    
+   =^=!%%=^^^!^^^!!^^^%%=%%!!!!^^^%%^^^!!%%%=^^^!!!%%!!%%%^^^^%^%       
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+AVAILABLE COMMANDS:
+In all acts, you can use:
+- crew_count : to check how many crew members are still alive
+- look : To observe your surroundings.
+- talk person : To interact with characters.
+- embark : To board your ship
+- disembark : To leave your ship and explore on land.
+- sail direction : to sail to another location
+
+In Act I, you can additionally use:
+- take object : To collect items you find.
+
+In Act III, you can additionally use:
+- gather material : To gather essential materials for crafting.
+- build material : To construct a raft or other items needed to progress.
+
+Good luck on your journey, brave Odysseus!
+Type 'start' to play the game or type 'finish' anytime to close it.
+--------------------------------------------------------------------
+
+start
+
+The city of Troy has been seized, the war won. Ten years away from home are finally coming to
+an end. You're on your way to Ithaca now, hundreds of sea miles both behind and ahead of you.
+The problem's not the distance, you know very well, but the dangers that lie in between
+- you'll have to act smart to get back to your homeland.
+
+You think of your wife. You think of your little boy, who's probably not so little anymore.
+
+Failure is not an option.
+
+With trusted crew by your side, the six hundred men under your command, there just might be
+hope for you after all.
+
+You should look around, talk to them while it's not busy or sail to cross the sea and reach home.
+
+|: sail west
+There's solid land nearby - you notice the glowing light of a fire. It seems inviting.
+|: sail north
+You're not far from an island, rugged shoreline making way to green fields and rocky mountains
+full of caves. One cave in particular looks easy to reach.
+|: disembark
+At the entrance of a cave, you find a herd of sheep - food much tastier than anything you
+have left from your supplies. Some of your men stay behind, while the rest of you ventures
+onward to search the tunnels.
+You walk a long while, far into the cave, when a deep voice echoes through the darkness.
+'Who are you? What are you doing, breaking into the house of Polyphemus?'
+Single, massive eye opens behind you, glowing in the light of your torch. Polyphemus
+does not look happy as he waits for an answer. 'What's your name, stranger?'
+|: nobody
+'Are you the one who killed my sheep, nobody? My favourite sheep. You will pay for what you did
+with your own blood.'
+The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave's floor.
+You have 556 crew members remaining.
+But no one comes to his aid.
+It's your opportunity to leave the cave, embark on a ship and get the hell away.
+|: embark
+
+You manage to embark on a ship and leave the Cyclops' cave behind.
+As you do, you can't shake the feeling of being watched, but the eyes are not only those of your men nor the foe
+you've escaped from. The gods have taken an interest in your actions. Something in the air has changed.
+You end up back at the same open sea, but maybe you should look around more.
+|: disembark
+Disembarking!
+|: look
+The home of the wind god, Aeolus, is just as unique as its owner might suggest. Loud and playful
+with various puffs of clouds twisting and turning in the air, as if alive.
+Aeolus himself flies around as well, never in one place for long. You feel his gaze following you.
+|: talk aeolus
+You kneel down and describe your situation, knowing that the god can hear.
+Your ask for assistance is first met with disheartening nothing, but then - laughter.
+
+Aeolus comes to a stop right before you. 'I suppose we could play a game, Odysseus of Ithaca.'
+I'll show you a bag with the winds of the storm all trapped. If it gets opened, whatever
+the reason... well, good luck.'
+'Do be careful who you trust, captain, you never really know.'
+
+And with that, he's gone on a breeze again, leaving a tied wind-bag at your feet.
+|: take wind-bag
+You pick up the wind-bag.
+|: embark
+Calm open sea and the island of a god, nothing more for you here. You instinctively look
+towards north, where the sky's a clear expanse of blue.
+|: sail north
+The sky is clear, the water smooth - no storm, no tidal wave. You see Ithaca - your destination, your
+kingdom, your home - on the horizon. You can already feel the ghost of your wife's embrace.
+
+|: sail north
+
+With the storm contained, it shouldn't take much longer to reach the coast. Mere weeks.
+
+You wish you could relax now, but the wind gods' words won't let you. 'Be careful who you
+trust, captain' pushes you to keep your eyes open at all times.
+
+You guard the wind-bag to the best of your abilities, but the need to sleep proves stronger eventually.
+
+The dream is a lovely one - the family reunited, Penelope and Telemachus in your arms.
+
+The reality is not. The bag lies open. The raging storm tears at your ships with vengeance, vicious
+currents leading you to distant shores far, far away from Ithaca.
+|: look
+The waters here feel thick with enchantment, and Circe's island lies ominously ahead.
+|: disembark
+Disembarking!
+|: look
+After disembarking on Circe's island, you step into a lush, enchanted forest.
+The air is thick with mystery, and your instincts warn you of hidden dangers.
+To continue, you can talk to Hermes or confront Circe to face her enchantments.
+|: talk hermes
+Hermes, appearing like a ghostly figure, approaches with wisdom and a gift.
+Hermes offers you a magical herb, saying it will protect you from Circe's spells. You may need it if you choose to confront her.
+You now have a magical herb in your possession.
+|: confront circe
+Holding the magical herb, you feel its protective aura as you step into Circe's palace.
+You sense her spells failing against you.
+You now have a choice: will you 'spare' her life or 'kill' her?
+spare
+You decide to spare Circe, who restores your crew to human form. They are relieved, and gratitude fills the air.
+Time passes; a full year slips by as Circe becomes your ally and lover. The comforts of the island nearly make you forget your quest.
+One day, your crew approaches, urging you to remember Ithaca.
+You can now TALK TO CREW to discuss the journey ahead.
+|: talk crew
+Your crew gathers, their expressions serious. 'Captain,' they say, 'it’s time we resume our journey to Ithaca.'
+They remind you of the goal that has driven you across the seas, and their loyalty fills you with resolve.
+You can now TALK TO CIRCE to seek further guidance from her.
+|: talk circe
+Circe nods in understanding, sensing your readiness to continue your journey.
+'If you wish to return to Ithaca,' she says, 'you must first venture west, to the Underworld, then directly come back to me.'
+But heed my warning — avoid the north, for giants dwell there, and their strength is unmatched.
+Circe hands you an empty bottle, saying it may prove useful later in your journey.
+With her guidance, you feel prepared to set sail once more.
+|: embark
+The waters here feel thick with enchantment, and Circe's island lies ominously ahead.
+|: sail west
+You have reached the mysterious and eerie waters of the Underworld.
+|: disembark
+Disembarking!
+|: look
+You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx.
+|: talk charon
+Charon, the ferryman, explains the rules of the River Styx.
+He says he will help you cross, but only if you solve the puzzle.
+He can only take one thing at a time: the crew, the wine, or Cerberus, the three-headed dog.
+However, if the crew is left with the wine or Cerberus, disaster will strike.
+You must cross the river in a specific order to avoid tragedy.
+To start, Charon will take the crew across.
+start_ferry_puzzle
+You can either take the wine or Cerberus next.
+The following commands are available to you:
+1. 'ferry X' - to have Charon take X across the river.
+2. 'return X' - to have Charon return with X.
+X can be 'crew', 'wine', 'cerber', or 'none'.
+Please make sure to follow the correct order to avoid losing crew members.
+|: start_ferry_puzzle
+The ferry puzzle has begun! Type 'ferry <item>' or 'return <item>' to proceed.
+|: ferry crew
+You ferried Crew
+Start side: [Wine,Cerber]
+End side: [Crew,Charon]
+|: return none
+You returned with nothing
+Start side: [Charon,Wine,Cerber]
+End side: [Crew]
+|: ferry wine
+You ferried Wine
+Start side: [Cerber]
+End side: [Wine,Charon,Crew]
+|: return crew
+You returned Crew to the start side.
+Start side: [Crew,Charon,Cerber]
+End side: [Wine]
+|: ferry cerber
+You ferried Cerber
+Start side: [Crew]
+End side: [Cerber,Charon,Wine]
+|: return none
+You returned with nothing
+Start side: [Charon,Crew]
+End side: [Cerber,Wine]
+|: ferry crew
+You ferried Crew
+Start side: []
+End side: [Crew,Charon,Cerber,Wine]
+Congratulations! You have successfully ferried everything across the River Styx. You can now talk to Tiresias
+|: talk tiresias
+Tiresias, the prophet, speaks to you with grave solemnity:
+I see your future, Odysseus. You may reach Ithaca, but the path will be fraught with hardships.
+The island of Helios and its sacred cattle will be your doom if you dare approach them.
+The fates have already sealed the tragic death of your mother, which you have yet to learn.
+The ferryman urges you to hurry, though he offers you the chance to talk to one of three shades: your mother, Achilles, or Agamemnon.
+But choose wisely, for you can only speak with one of them.
+|: talk achilles
+Achilles, the great warrior, speaks to you with fiery intensity:
+'Odysseus, your journey is long, and I know the struggles you face. The gods play cruel games with you.
+But you must know, I feel no peace here in the Underworld. The thought of my death haunts me still.'
+Achilles decides to speak to Charon to extend your stay. You now have time to speak to both your mother and Agamemnon for any wisdom they can provide.
+|: talk mother
+A spectral figure appears before you—your mother, Anticleia.
+'My dear son, I died of grief and longing for you.'
+The days of our separation broke my heart. I wish I could have seen you return to Ithaca.
+With a soft sigh, she hands you a charm—a Charybdis Lure, a precious item that may one day save you from the whirlpool.
+|: talk agamemnon
+Agamemnon, the great king of Mycenae, speaks to you from the shadows:
+'I was betrayed by my wife, Clytemnestra, and murdered upon my return to Mycenae. But you, Odysseus, will fare better, I hope.'
+He offers you a map of the seas ahead—knowledge of the islands that await you in Act II.
+Type 'show_map' to look at it.
+Now you must return to your ship. Further conversations are no longer possible.
+|: sail east
+The waters here feel thick with enchantment, and Circe's island lies ominously ahead.
+|: disembark
+Disembarking!
+|: look
+You step back onto Circe's island, feeling the weight of your journey to the Underworld lingering upon you.
+The familiar sights of her enchanted island are a strange comfort after the shadows of Hades.
+Circe greets you with a knowing look, sensing the trials you’ve endured and the wisdom you have gained.
+It’s clear she has more guidance to offer, should you seek her counsel.
+You may now talk to Circe to ask for further instructions on your journey.
+|: talk circe
+Circe sees the weight of your journey and speaks again with wisdom:
+'Your next trial, Odysseus, is the Sirens' Sea, where their hypnotic singing lures sailors to destruction.
+You must have your crew plug their ears with beeswax to resist the sound. But you—remain unsealed and tied to the mast to hear their song.'
+
+'After passing the Sirens, you will face Scylla and Charybdis. I advise you to sail closer to Scylla; though she will claim 6% of your crew, Charybdis devours entire ships.'
+
+Decide now how many of your crew will assist me in gathering ingredients for a potion that could protect you against Scylla.
+This potion will be crucial if you choose to pass near Scylla, as it may shield you from becoming one of the 6% she devours.
+Each crew member represents a 1% chance of survival. The rest will collect beeswax to seal their ears.
+Your crew now consists of 556 brave warriors.
+Please enter the number of crew for the potion:
+100
+Circe confirms your plan:
+100 crew members will work on the potion, granting you a 100% chance of survival.
+506 crew members are protected.
+Those unprotected by wax will perish under the Sirens' spell.
+When ready, you may depart towards the Sirens' Sea.
+|: embark
+The waters here feel thick with enchantment, and Circe's island lies ominously ahead.
+|: sail east
+The waters are calm but ominous as you approach the domain of the Sirens.
+In the distance, their figures are barely visible, their songs ready to ensnare anyone who listens.
+You must now decide whether to block your own ears or not.
+Type plug_ears if you want to block your ears or leave_ears_open if you want to hear the Sirens' song.
+You must now decide whether to block your own ears or not.
+Type 'plug_ears' if you want to block your ears or 'leave_ears_open' if you want to hear the Sirens' song
+leave_ears_open
+You choose to leave your ears open. Your crew ties you tightly to the mast, as per Circe's advice.
+The Sirens' voices fill the air, haunting and beautiful.
+You listen, enthralled, and in their song, you learn of a mystical potion recipe that grants strength and protects life.
+You have learned the potion recipe!
+Not all of your crew were protected, and 50 of them succumbed to the Sirens' song.
+With the Sirens behind you, you should sail south on towards the looming cliffs of Scylla and Charybdis.
+You brace yourself for another challenge as the journey continues.
+: sail south
+The sea grows treacherous as you approach the domain of Scylla and Charybdis.
+To your left, you see Scylla's ominous cliffs, while Charybdis churns the water violently to your right.
+You must choose which path to take to continue.
+Type sail_scylla to navigate past Scylla or sail_charybdis to risk waters near Charybdis.
+|: sail_charybdis
+You use the mysterious Charybdis Lure, guiding your ship safely past the deadly whirlpool.
+The waters calm, and you find yourselves out of danger.
+After surviving the perilous pass, a fierce storm catches you off guard.
+The raging waves drive your ship eastward, and you find yourselves on the shores of the Island of the Sun God.
+|: sail east
+A violent storm catches your ship, forcing you to seek refuge on a nearby island.
+This is the sacred island of the Sun God, Helios, where his holy cattle roam.
+|: disembark
+Disembarking!
+|: look
+You disembark onto the island, hoping the storm will soon pass.
+Unfortunately, the storm shows no sign of stopping, and you will need to stay here longer.
+Your food supplies are exhausted, and the crew is looking to you for guidance.
+You had better talk to them for advice.
+|: talk crew
+Your crew gathers around, their faces pale with hunger.
+One of them speaks up: 'Captain, we cannot last without food. These cattle are our only chance.'
+You remember Tiresias's warning not to eat the sacred cattle of Helios.
+Make your choice:
+Type "eat_cattle" to let the crew feast and risk the wrath of the gods.
+Type "do_not_eat_cattle" to let your crew starve.
+|: do_not_eat_cattle
+You stand firm in your decision: 'We will not eat the cattle of the Sun God.'
+The crew protests but ultimately obeys. Over the next days, hunger claims the lives of 50 members.
+|: eat_cattle
+Reluctantly, you allow the crew to slaughter the sacred cattle of Helios.
+The feast restores their strength, but you sense a dark omen in the air.
+As you consume the cattle, you find a special vial containing the blood of Helios’s sacred beast.
+This is the final ingredient needed to complete the elixir of strength.
+Type "complete_elixir" to obtain it.
+|: complete_elixir
+Using the empty bottle and the blood of Helios’s cattle, you complete the Elixir of Strength. You are now ready to continue journey
+|: continue_journey
+As you leave the island, a thunderous voice echoes: 'For your desecration, you shall be punished!'
+The sea rages as a powerful storm descends upon your ship.
+Thanks to the Elixir of Strength, you alone withstand the gods' wrath and survive.
+Your crew perishes, and you lose consciousness...
+|: look
+You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen.
+The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground.
+Your crew is no loger alive, your ship is gone. You are left all alone.
+When you wake up, the first thing you see is a woman, a goddess, who introduces herself as Calypso.
+She is beautiful, but you want to return home. You can try asking her how to leave.
+|: talk calypso
+Calypso gazes at you and says: 'Why hurry to leave? This island is paradise, and I will care for you here forever.'
+To return to the life you truly seek, you must craft a raft that can withstand Poseidon's storms.
+Gather the resources of the island: wood, logs, rope, and cloth. Only then will you be able to return home.
+|: gather wood
+You have gathered 1 wood(s) already.
+|: gather wood
+You have gathered 2 wood(s) already.
+|: gather rope
+You have gathered 1 rope(s) already.
+|: gather rope
+You have gathered 2 rope(s) already.
+|: gather logs
+You have gathered 1 logs(s) already.
+|: gather logs
+You have gathered 2 logs(s) already.
+|: gather cloth
+You have gathered 1 cloth(s) already.
+|: gather cloth
+You have gathered all necessary materials for the raft! You can start building it.
+|: build logs
+You lay the base from logs as the foundation of your raft.
+|: build wood
+You have to build something else.
+|: build rope
+You tie everything together with rope to stabilize the structure.
+|: build wood
+You arrange the wood into a stable frame on top of the base.
+|: build cloth
+You set up the mast. The raft is complete! You can now attempt to escape Calypso's Island.
+|: escape
+With your raft complete, you set out to sea, leaving Calypso's Island behind.
+At last, you set foot on Ithaca, your homeland.
+After all the trials, you've made it home, where every person on the street talks about
+the queen's challenge.
+
+But that's a story for another day.
+After years lost at sea, battles fought, and gods defied, you've finally reached Ithaca.
+You've proven that courage and loyalty can overcome even the wrath of gods.
+
+Welcome home, Odysseus.
+
+------------------------------ THE END -----------------------------
+                      Thank you for playing!
+--------------------------------------------------------------------
