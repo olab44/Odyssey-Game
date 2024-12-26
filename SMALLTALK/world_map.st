@@ -184,7 +184,7 @@ Object subclass: WorldMap [
         location name: 'scylla_charybdis_sea' description: #('The sea grows treacherous as you approach the domain of Scylla and Charybdis.').
         location addDirection: 'south' toLocation: 'sun_god_sea'.
         location onEnterFunc: [ :gameState |
-            | choice message |
+            | choice message randomRate loss |
             gameState setCurrentLocation: location.
 
             Transcript show: 'The sea grows treacherous as you approach the domain of Scylla and Charybdis.'; cr.
@@ -199,7 +199,16 @@ Object subclass: WorldMap [
             ].
 
             choice = 'scylla' ifTrue: [
-
+                message := #('You approach Scylla...').
+                randomRate := Random new next.
+                (randomRate > gameState getScyllaSurvivalRate) ifTrue: [
+                    message := message, #('Scylla strikes with terrifying speed, catching you off guard.' 'You have been taken.').
+                    gameState setIsGameOver: true
+                ] ifFalse: [
+                    message := message, #('You sail past Scylla successfully, but she manages to claim some of your crew.').
+                    loss := (6 max: (0.06 * gameState getCrewCount) rounded) min: gameState getCrewCount.
+                    gameState killCrew: loss
+                ].
             ].
 
             choice = 'charybdis' ifTrue: [

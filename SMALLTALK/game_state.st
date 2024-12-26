@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap currentLocation equipment crewCount crewProtected |
+    | isGameOver worldMap currentLocation equipment crewCount crewProtected scyllaSurvivalRate |
 
     GameState class >> new [
         ^ super new init
@@ -12,6 +12,7 @@ Object subclass: GameState [
         equipment := Dictionary new.
         crewCount := 600.
         crewProtected := 0.
+        scyllaSurvivalRate := 0.
     ]
 
     getIsGameOver [ ^isGameOver ]
@@ -29,7 +30,6 @@ Object subclass: GameState [
     ]
 
     getCrewCount [ ^ crewCount ]
-    getCrewProtected [ ^ crewProtected ]
     killCrew: num [
         crewCount := crewCount - num.
         crewCount <= 0 ifTrue: [
@@ -38,6 +38,9 @@ Object subclass: GameState [
                 'That`s when you realize - all of your men... dead. You`re not far behind them.')
         ].
     ]
+
+    getCrewProtected [ ^ crewProtected ]
+    getScyllaSurvivalRate [ ^ scyllaSurvivalRate ]
 
     move: aDirection [
         | new_location |
