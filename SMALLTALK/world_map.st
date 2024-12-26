@@ -1,33 +1,33 @@
 Object subclass: Location [
-    | type name description objects characters directions onEnterFunc |
+    | access type name description objects directions onEnterFunc blockedAccessFunc |
 
     Location class >> new [
         ^ super new init
     ]
 
     init [
-        type = ''.
+        access := true.
+        type := ''.
         name := ''.
         description := #().
         objects := OrderedCollection new.
-        characters := OrderedCollection new.
         directions := Dictionary new.
         onEnterFunc := [ :gameState |
             gameState setCurrentLocation: self.
             description
+        ].
+        blockedAccessFunc := [
+            #('You either find nothing of note or the way`s impassable. You end up turning back.')
         ]
     ]
-
     Location >> name: aName description: aDescription [
         name := aName.
         description := aDescription.
     ]
-    Location >> characters: aCharacters [
-        characters := aCharacters.
-    ]
-    Location >> onEnterFunc: aFunc [
-        onEnterFunc := aFunc.
-    ]
+    Location >> onEnterFunc: aFunc [ onEnterFunc := aFunc. ]
+    Location >> blockedAccessFunc: aFunc [ blockedAccessFunc := aFunc. ]
+
+    setAccess: isAccessible [ access := isAccessible. ]
 
     addDirection: aDirection toLocation: aLocation [
         directions at: aDirection put: aLocation.
@@ -39,7 +39,10 @@ Object subclass: Location [
     getType [ ^type ]
     getDescription [ ^description ]
 
-    onEnter: aGameState [ ^ onEnterFunc value: aGameState ]
+    onEnter: aGameState [
+        (access) ifTrue: [ ^ onEnterFunc value: aGameState ].
+        ^ blockedAccessFunc value
+    ]
 ]
 Location subclass: Sea [
     Sea class >> new [
@@ -109,6 +112,7 @@ Object subclass: WorldMap [
         location name: 'giants_sea' description: #('You have entered the territory of dangerous giants! They begin hurling massive stones at your ships.').
         location onEnterFunc: [ :gameState |
             | currentCrew loss newCrewCount message |
+            gameState setCurrentLocation: location.
 
             currentCrew := gameState getCrewCount.
             loss := (currentCrew * 0.2) rounded.
@@ -117,8 +121,10 @@ Object subclass: WorldMap [
             message := message, #('The giants` fierce attack is quick to reduce the numbers of your crew. You have no choice but to retreat.').
             message := message, (gameState killCrew: loss).
 
+            gameState move: 'south'.
             message
         ].
+        location addDirection: 'south' toLocation: 'circe_sea'.
 
         ^location
     ]
@@ -261,16 +267,19 @@ Object subclass: WorldMap [
     WorldMap class >> createUnderworldSea [
         | location |
         location := Sea new.
-        location name: 'underworld_sea' description: #('Underworld Sea').
+        location name: 'underworld_sea' description: #('You have reached the mysterious and eerie waters of the Underworld.').
+        location setAccess: false.
+        location blockedAccessFunc: [ #('The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe`s Sea.') ].
         location addDirection: 'disembark' toLocation: 'underworld'.
         location addDirection: 'east' toLocation: 'circe_sea'.
+        location addDirection: 'north' toLocation: 'giants_sea'.
         ^location
     ]
 
     WorldMap class >> createUnderworld [
         | location |
-        location := Sea new.
-        location name: 'underworld' description: #('Underworld').
+        location := Land new.
+        location name: 'underworld' description: #('You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx.').
         location addDirection: 'embark' toLocation: 'underworld_sea'.
         ^location
     ]

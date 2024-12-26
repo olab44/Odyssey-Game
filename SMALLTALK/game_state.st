@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap currentLocation equipment crewCount crewProtected scyllaSurvivalRate |
+    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate |
 
     GameState class >> new [
         ^ super new init
@@ -8,6 +8,7 @@ Object subclass: GameState [
     init [
         isGameOver := false.
         worldMap := WorldMap createWorldMap.
+        "characterPopulation := CharacterPopulation createCharacters."
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
         crewCount := 600.
