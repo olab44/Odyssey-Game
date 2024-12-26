@@ -23,6 +23,8 @@ Object subclass: GameState [
     getCurrentLocation [ ^currentLocation ]
     setCurrentLocation: aLocation [ currentLocation := aLocation ]
 
+    getCharacter: characterName [ ^ characterPopulation at: characterName ifAbsent: [nil] ]
+
     getEquipment [ ^equipment ]
     hasItem: itemName [ ^ (equipment includesKey: itemName) ]
     addItemToEq: itemName [
