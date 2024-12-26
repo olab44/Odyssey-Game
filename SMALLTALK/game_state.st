@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap currentLocation equipment crewCount |
+    | isGameOver worldMap currentLocation equipment crewCount crewProtected |
 
     GameState class >> new [
         ^ super new init
@@ -11,6 +11,7 @@ Object subclass: GameState [
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
         crewCount := 600.
+        crewProtected := 0.
     ]
 
     getIsGameOver [ ^isGameOver ]
@@ -27,6 +28,7 @@ Object subclass: GameState [
     ]
 
     getCrewCount [ ^ crewCount ]
+    getCrewProtected [ ^ crewProtected ]
     killCrew: num [
         crewCount := crewCount - num.
         crewCount <= 0 ifTrue: [

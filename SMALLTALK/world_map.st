@@ -66,8 +66,8 @@ Object subclass: WorldMap [
         locations at: 'circe_sea' put: self createCirceSea.
         locations at: 'circe_island' put: self createCirceIsland.
         locations at: 'giants_sea' put: self createGiantsSea.
-        locations at: 'scylla_charybdis_sea' put: self createScyllaCharybdisSea.
         locations at: 'sirens_sea' put: self createSirensSea.
+        locations at: 'scylla_charybdis_sea' put: self createScyllaCharybdisSea.
         locations at: 'sun_god_sea' put: self createSunGodSea.
         locations at: 'sun_god_island' put: self createSunGodIsland.
         locations at: 'underworld_sea' put: self createUnderworldSea.
@@ -123,19 +123,66 @@ Object subclass: WorldMap [
         ^location
     ]
 
+    WorldMap class >> createSirensSea [
+        | location |
+        location := Sea new.
+        location name: 'sirens_sea'
+            description: #(
+                'The waters are calm but ominous as you approach the domain of the Sirens.'
+                'In the distance, their figures are barely visible, their songs ready to ensnare anyone who listens.'
+                'You can sail south to leave them behind or sail back west and try your luck with them once more another time.'
+                ).
+        location addDirection: 'north' toLocation: 'giants_sea'.
+        location addDirection: 'south' toLocation: 'scylla_charybdis_sea'.
+        location addDirection: 'west' toLocation: 'circe_sea'.
+        location onEnterFunc: [ :gameState |
+            | choice message loss |
+
+            gameState setCurrentLocation: location.
+
+            Transcript show: 'The waters are calm but ominous as you approach the domain of the Sirens.'; cr.
+            Transcript show: 'In the distance, their figures are barely visible, their songs ready to ensnare anyone who listens.'; cr.
+            Transcript show: 'You must now decide whether to block your own ears or not.'; cr.
+            Transcript show: 'Will you "plug ears" or "leave ears open" to hear the Sirens` song?'; cr.
+
+            Transcript show: '|> '.
+            choice := FileStream stdin nextLine.
+
+            message := #().
+            (choice ~= 'leave ears open' and: [choice ~= 'plug ears']) ifTrue: [
+                message := #('You take too long and so the crew decides for you.').
+                choice := 'plug ears'
+            ].
+
+            choice = 'plug ears' ifTrue: [
+                message := message, #('As you sail past, you see the Sirens singing, but their voices cannot reach you, for your ears are plugged with wax.').
+            ].
+
+            choice = 'leave ears open' ifTrue: [
+                message := #('You choose to leave your ears open. Your crew ties you tightly to the mast, as per Circe`s advice.'
+                    'The Sirens` voices fill the air, haunting and beautiful.'
+                    'You listen, enthralled, and in their song, you learn of a mystical potion recipe that grants strength and protects life.'
+                    'You have learned the potion recipe!'
+                    '').
+                gameState addItemToEq: 'potion_recipe'.
+            ].
+            loss := gameState getCrewCount - (gameState getCrewProtected min: gameState getCrewCount).
+
+            message := message, #('Not all of your crew remained protected - some of them succumbed to the Sirens` song.'
+                    'With the Sirens behind you, you should sail south towards the looming cliffs of Scylla and Charybdis.'
+                    'You brace yourself for another challenge as the journey continues.').
+            message := message, (gameState killCrew: loss).
+
+            message
+        ].
+
+        ^location
+    ]
+
     WorldMap class >> createScyllaCharybdisSea [
         | location |
         location := Sea new.
         location name: 'scylla_charybdis_sea' description: #('Scylla / Charybdis').
-        ^location
-    ]
-
-    WorldMap class >> createSirensSea [
-        | location |
-        location := Sea new.
-        location name: 'sirens_sea' description: #('Sirens').
-        location addDirection: 'north' toLocation: 'giants_sea'.
-        location addDirection: 'south' toLocation: 'scylla_charybdis_sea'.
         ^location
     ]
 
