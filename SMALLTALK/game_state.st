@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate |
+    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate underworldChallenge|
 
     GameState class >> new [
         ^ super new init
@@ -8,12 +8,13 @@ Object subclass: GameState [
     init [
         isGameOver := false.
         worldMap := WorldMap createWorldMap.
-        "characterPopulation := CharacterPopulation createCharacters."
+        characterPopulation := CharacterPopulation createCharacters.
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
         crewCount := 600.
         crewProtected := 0.
         scyllaSurvivalRate := 0.
+        underworldChallenge := UnderworldChallenge new.
     ]
 
     getIsGameOver [ ^isGameOver ]
@@ -80,10 +81,25 @@ Object subclass: GameState [
         ^ new_location onEnter: self
     ]
 
-    talk: character [
+    talk: characterName [
+        | character |
+        character := characterPopulation at: characterName.
+
+        (character isNil) ifTrue: [
+            ^ #('It`s not a time nor place for a talk with someone who`s busy - or someone who`s not even there.')
+        ].
+        ^ character talk: self
     ]
 
     take: itemName [
         "take item if in location and not already owned"
+    ]
+
+    startChallenge [
+        (currentLocation getName = 'underworld' | underworldChallenge ) ifTrue: [
+            underworldChallenge startChallenge.
+            ^ #('Charon opens the gates to Hades, and you may now speak with Tiresias.')
+        ].
+        ^ #('No such challenge stands before you here. Perhaps you`ve already completed it?')
     ]
 ]

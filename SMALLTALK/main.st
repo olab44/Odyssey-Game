@@ -68,19 +68,19 @@ Object subclass: Game [
         Transcript show: green, '--------------------------------------------------------------------', reset; cr.
         Transcript show: 'AVAILABLE COMMANDS:'; cr.
         Transcript show: 'In all acts, you can use:'; cr.
-        Transcript show: '- crew_count : to check how many crew members are still alive'; cr.
+        Transcript show: '- count crew : to check how many crew members are still alive'; cr.
         Transcript show: '- look : To observe your surroundings.'; cr.
-        Transcript show: '- talk person : To interact with characters.'; cr.
+        Transcript show: '- talk <person> : To interact with characters.'; cr.
         Transcript show: '- embark : To board your ship'; cr.
         Transcript show: '- disembark : To leave your ship and explore on land.'; cr.
-        Transcript show: '- sail direction : to sail to another location'; cr.
+        Transcript show: '- sail <direction> : to sail to another location'; cr.
         Transcript show: ''; cr.
         Transcript show: 'In Act I, you can additionally use:'; cr.
-        Transcript show: '- take object : To collect items you find.'; cr.
+        Transcript show: '- take <object> : To collect items you find.'; cr.
         Transcript show: ''; cr.
         Transcript show: 'In Act III, you can additionally use:'; cr.
-        Transcript show: '- gather material : To gather essential materials for crafting.'; cr.
-        Transcript show: '- build material : To construct a raft or other items needed to progress.'; cr.
+        Transcript show: '- gather <material> : To gather essential materials for crafting.'; cr.
+        Transcript show: '- build <material> : To construct a raft or other items needed to progress.'; cr.
         Transcript show: ''; cr.
         Transcript show: 'Good luck on your journey, brave Odysseus!'; cr.
         Transcript show: yellow, 'Type "start" to play the game or type "finish" anytime to close it.'; cr.
@@ -148,7 +148,12 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
-            cmd = 'crew_count' ifTrue: [
+            cmd = 'start challenge' ifTrue: [
+                self printLines: (gameState startChallenge).
+                isUnknown := false
+            ].
+
+            cmd = 'count crew' ifTrue: [
                 Transcript show: 'You have ', (gameState getCrewCount asString), ' men remaining.'; cr.
                 isUnknown := false
             ].

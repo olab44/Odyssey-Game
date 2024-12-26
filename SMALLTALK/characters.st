@@ -1,25 +1,32 @@
-Object subclass: Character [
+Object subclass: NPC [
     | name dialogues |
 
-    Character class >> new [ ^ super new init ]
+    NPC class >> new [
+        ^ super new init
+    ]
 
     init [
         name := ''.
         dialogues := Dictionary new.
     ]
 
-    name: aName dialogues: aDialogues locations: aLocations [
+    NPC >> name: aName dialogues: aDialogues [
         name := aName.
         dialogues := aDialogues.
     ]
 
-    getDialogue: gameState [
+    talk: gameState [
+        | dialogue |
+        dialogue := dialogues at: (gameState getCurrentLocation getName) ifAbsent: [nil].
 
+        (dialogue isNil) ifTrue: [
+            ^ #('It`s not a time nor place for a talk with someone who`s busy - or someone who`s not even there.')
+        ].
+        ^ dialogue value: gameState
     ]
 ]
 
-Object subclass: CharactersPopulation [
-
+Object subclass: CharacterPopulation [
     CharacterPopulation class >> createCharacters [
         | characters |
         characters := Dictionary new.
@@ -34,33 +41,80 @@ Object subclass: CharactersPopulation [
         ^characters
     ]
 
+    CharacterPopulation class >> createCrew [
+        | character |
+
+        character := NPC new.
+        character name: 'crew' dialogues: Dictionary new.
+
+        ^character
+    ]
+
     CharacterPopulation class >> createCirce [
         | character dialogues |
 
-        character := Character new.
-        character name: 'circe' dialogues: dialogues locations: locations.
+        dialogues := Dictionary new.
+
+        character := NPC new.
+        character name: 'circe' dialogues: dialogues.
 
         ^character
     ]
 
-    WorldMap class >> createAchilles [
+    CharacterPopulation class >> createHermes [
         | character dialogues |
 
-        character := Character new.
-        character name: 'achilles' dialogues: #(
-
-        )
-
-        ^character
-    ]
-
-    WorldMap class >> createCirce [
-        | character dialogues |
-
-        character := Character new.
-        character name: 'circe' dialogues: dialogues locations: locations.
+        dialogues := Dictionary new.
+        dialogues at: 'circe_island' put: [ :gameState |
+            gameState addItemToEq: 'magic_herb'.
+            #('Hermes, appearing like a ghostly figure, approaches with wisdom and a gift - a magical herb.'
+            'He offers it to you, saying it will protect you from Circe`s spells. You may need it if you choose to confront her.').
+        ].
+        character := NPC new.
+        character name: 'hermes' dialogues: dialogues.
 
         ^character
     ]
 
+    CharacterPopulation class >> createCharon [
+        | character |
+
+        character := NPC new.
+        character name: 'charon' dialogues: Dictionary new.
+        ^character
+    ]
+
+    CharacterPopulation class >> createTiresias [
+        | character |
+
+        character := NPC new.
+        character name: 'tiresias' dialogues: Dictionary new.
+        ^character
+    ]
+
+    CharacterPopulation class >> createMother [
+        | character |
+
+        character := NPC new.
+        character name: 'mother' dialogues: Dictionary new.
+        ^character
+    ]
+
+    CharacterPopulation class >> createAgamemnon [
+        | character |
+
+        character := NPC new.
+        character name: 'agamemnon' dialogues: Dictionary new.
+
+        ^character
+    ]
+
+    CharacterPopulation class >> createAchilles [
+        | character |
+
+        character := NPC new.
+        character name: 'achilles' dialogues: Dictionary new.
+
+        ^character
+    ]
 ]

@@ -36,6 +36,7 @@ Object subclass: Location [
         ^directions at: aDirection ifAbsent: [nil].
     ]
 
+    getName [ ^name ]
     getType [ ^type ]
     getDescription [ ^description ]
 
