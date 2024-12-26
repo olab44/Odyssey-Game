@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap currentLocation equipment disembarked |
+    | isGameOver worldMap currentLocation equipment crewCount |
 
     GameState class >> new [
         ^ super new init
@@ -10,7 +10,7 @@ Object subclass: GameState [
         worldMap := WorldMap createWorldMap.
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
-        disembarked := false.
+        crewCount := 600.
     ]
 
     getIsGameOver [ ^isGameOver ]
@@ -20,14 +20,29 @@ Object subclass: GameState [
     setCurrentLocation: aLocation [ currentLocation := aLocation ]
 
     getEquipment [ ^equipment ]
-    addItemToEq: anItem [ equipment at: (anItem getName) put: anItem ]
+    addItemToEq: itemName [
+        | currentCount |
+        currentCount := equipment at: itemName ifAbsent: [ 0 ]. "Get current count or 0 if absent"
+        equipment at: itemName put: currentCount + 1.
+    ]
+
+    getCrewCount [ ^ crewCount ]
+    killCrew: num [
+        crewCount := crewCount - num.
+        crewCount <= 0 ifTrue: [
+            isGameOver := true.
+            ^ #(''
+                'That`s when you realize - all of your men... dead. You`re not far behind them.')
+        ].
+    ]
 
     move: aDirection [
         | new_location |
 
         aDirection = 'embark' ifTrue: [ ^ self embark. ].
         aDirection = 'disembark' ifTrue: [ ^ self disembark. ].
-        disembarked ifTrue: [ ^ #('You need to embark on a ship first.'). ].
+
+        currentLocation getType = 'land' ifTrue: [ ^ #('You need to embark on a ship first.'). ].
 
         new_location := worldMap at: (currentLocation getDirection: aDirection) ifAbsent: [nil].
 
@@ -35,32 +50,33 @@ Object subclass: GameState [
             ^ #('You set sail, but you either find nothing of note in that direction, or the way`s impassable. You end up turning back.').
         ].
 
-        currentLocation := new_location.
-        ^ new_location getDescription
+        ^ new_location onEnter: self
     ]
-
     disembark [
         | new_location |
-        disembarked ifTrue: [ ^ #('You`re already on land.'). ].
+        currentLocation getType = 'land' ifTrue: [ ^ #('You`re already on land.'). ].
         new_location := worldMap at: (currentLocation getDirection: 'disembark') ifAbsent: [nil].
         new_location isNil ifTrue: [
             ^ #('There`s no solid land to disembark on.').
         ].
 
-        disembarked := true.
-        currentLocation := new_location.
-        ^ new_location getDescription
+        ^ new_location onEnter: self
     ]
     embark [
         | new_location |
+        currentLocation getType = 'sea' ifTrue: [ ^ #('You`re already on a ship or there`s no ship at all.'). ].
         new_location := worldMap at: (currentLocation getDirection: 'embark') ifAbsent: [nil].
         new_location isNil ifTrue: [
             ^ #('You`re already on a ship or there`s no ship at all.').
         ].
 
-        disembarked := false.
-        currentLocation := new_location.
-        ^ new_location getDescription
+        ^ new_location onEnter: self
     ]
 
+    talk: character [
+    ]
+
+    take: itemName [
+        "take item if in location and not already owned"
+    ]
 ]

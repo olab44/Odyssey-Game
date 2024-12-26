@@ -143,6 +143,16 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
+            (cmd startsWith: 'talk') ifTrue: [
+                self printLines: (gameState talk: (cmd copyFrom: 6 to: cmd size)).
+                isUnknown := false
+            ].
+
+            cmd = 'crew_count' ifTrue: [
+                Transcript show: 'You have ', (gameState getCrewCount asString), ' men remaining.'; cr.
+                isUnknown := false
+            ].
+
             cmd = 'instructions' ifTrue: [
                 self printInstructions.
                 isUnknown := false
@@ -150,14 +160,15 @@ Object subclass: Game [
 
             cmd = 'finish' ifTrue: [
                 gameState setIsGameOver: true.
-                self printFinish.
                 isUnknown := false
             ].
 
             isUnknown ifTrue: [
                 self printLines: #('You cannot do that.')
             ]
-        ]
+        ].
+
+        self printFinish.
     ]
 ]
 
