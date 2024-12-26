@@ -21,6 +21,7 @@ Object subclass: GameState [
     setCurrentLocation: aLocation [ currentLocation := aLocation ]
 
     getEquipment [ ^equipment ]
+    hasItem: itemName [ ^ (equipment includesKey: itemName) ]
     addItemToEq: itemName [
         | currentCount |
         currentCount := equipment at: itemName ifAbsent: [ 0 ]. "Get current count or 0 if absent"

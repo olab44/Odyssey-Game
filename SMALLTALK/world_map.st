@@ -137,7 +137,6 @@ Object subclass: WorldMap [
         location addDirection: 'west' toLocation: 'circe_sea'.
         location onEnterFunc: [ :gameState |
             | choice message loss |
-
             gameState setCurrentLocation: location.
 
             Transcript show: 'The waters are calm but ominous as you approach the domain of the Sirens.'; cr.
@@ -180,9 +179,48 @@ Object subclass: WorldMap [
     ]
 
     WorldMap class >> createScyllaCharybdisSea [
-        | location |
+        | choice location |
         location := Sea new.
-        location name: 'scylla_charybdis_sea' description: #('Scylla / Charybdis').
+        location name: 'scylla_charybdis_sea' description: #('The sea grows treacherous as you approach the domain of Scylla and Charybdis.').
+        location addDirection: 'south' toLocation: 'sun_god_sea'.
+        location onEnterFunc: [ :gameState |
+            | choice message |
+            gameState setCurrentLocation: location.
+
+            Transcript show: 'The sea grows treacherous as you approach the domain of Scylla and Charybdis.'; cr.
+            Transcript show: 'To your left, you see Scylla`s ominous cliffs, while Charybdis churns the water violently to your right.'; cr.
+            Transcript show: 'You must choose which path to take to continue - Scylla or Charybdis?'; cr.
+
+            choice := ''.
+            [ choice = 'scylla' or: [choice = 'charybdis'] ] whileFalse: [
+                Transcript show: 'Your choice now is only between Scylla and Charybdis.'; cr.
+                Transcript show: '|> '.
+                choice := FileStream stdin nextLine.
+            ].
+
+            choice = 'scylla' ifTrue: [
+
+            ].
+
+            choice = 'charybdis' ifTrue: [
+                (gameState hasItem: 'charybdis_lure') ifTrue: [
+                    message := #('You use the mysterious Charybdis Lure, guiding your ship safely past the deadly whirlpool.'
+                        'The waters calm, and you find yourselves out of danger.').
+                ] ifFalse: [
+                    message := #('The whirlpool`s powerful currents pull your ship into its deadly grasp.'
+                        'Your ship and crew are lost to Charybdis.').
+                    gameState setIsGameOver: true
+                ].
+            ].
+
+            (gameState getIsGameOver) ifFalse: [
+                gameState move: 'south'.
+                message := message, #('After surviving the perilous pass, a fierce storm catches you off guard.'
+                'The raging waves drive your ship eastward, and you find yourselves on the shores of the Island of the Sun God.').
+            ].
+
+            message
+        ].
         ^location
     ]
 
