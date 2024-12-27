@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate underworldChallenge|
+    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate underworldChallenge longerUnderworldStay|
 
     GameState class >> new [
         ^ super new init
@@ -12,9 +12,10 @@ Object subclass: GameState [
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
         crewCount := 600.
-        crewProtected := 110.
-        scyllaSurvivalRate := 10.
+        crewProtected := 0.
+        scyllaSurvivalRate := 0.
         underworldChallenge := UnderworldChallenge new.
+        longerUnderworldStay := false.
     ]
 
     getIsGameOver [ ^isGameOver ]
@@ -48,6 +49,9 @@ Object subclass: GameState [
     setCrewProtected: num [ crewProtected := num ]
     getScyllaSurvivalRate [ ^ scyllaSurvivalRate ]
     setScyllaSurvivalRate: num [ scyllaSurvivalRate := num ]
+
+    getLongerUnderworldStay [ ^longerUnderworldStay ]
+    setLongerUnderworldStay: longerStay [ longerUnderworldStay := longerStay ]
 
     move: aDirection [
         | new_location |
@@ -100,10 +104,21 @@ Object subclass: GameState [
         "take item if in location and not already owned"
     ]
 
+    showMap [
+
+    ]
+
     startChallenge [
+        | loss message |
         (currentLocation getName = 'underworld' | underworldChallenge ) ifTrue: [
             underworldChallenge startChallenge.
-            ^ #('Charon opens the gates to Hades, and you may now speak with Tiresias.')
+            (underworldChallenge getFailedChallenge) ifTrue: [
+                loss := (crewCount * 0.2) max: 20.
+                message := (self killCrew: loss)
+            ].
+            (self getCharacter: 'charon') setAvailableDialogue: 'nil' atLocation: 'underworld'.
+            (self getCharacter: 'tiresias') setAvailableDialogue: 'prophet_advice' atLocation: 'underworld'.
+            ^ #('Charon opens the gates to Hades, and you may now speak with Tiresias.'), message
         ].
         ^ #('No such challenge stands before you here. Perhaps you`ve already completed it?')
     ]

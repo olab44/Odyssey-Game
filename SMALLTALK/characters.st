@@ -162,7 +162,7 @@ Object subclass: CharacterPopulation [
             Transcript show: 'Please decide the number of crew for the potion:'; cr.
 
             Transcript show: '|> '.
-            potionCrew := (self readLn) asInteger.
+            potionCrew := (FileStream stdin nextLine) asInteger.
             remainingCrew := currentCrew - (potionCrew min: 100).
             hivesCovered := remainingCrew // 5.
             protectedCrew := (currentCrew asFloat * ((hivesCovered min: 100) asFloat / 100.0)) rounded.
@@ -200,43 +200,110 @@ Object subclass: CharacterPopulation [
     ]
 
     CharacterPopulation class >> createCharon [
-        | character |
+        | character dialogues|
 
+        dialogues := Dictionary new.
+        dialogues at: 'challenge' put: [ :gameState |
+            #('Charon, the ferryman, explains the rules of the River Styx.'
+            'He says he will help you cross, but only if you solve the puzzle.'
+            'He can only take one thing at a time: the crew, the wine, or Cerberus, the three-headed dog.'
+            'However, if the crew is left with the wine or Cerberus, disaster will strike.'
+            'You must cross the river in a specific order to avoid tragedy.'
+            'To face the trial "start challenge".')
+        ].
         character := NPC new.
-        character name: 'charon' dialogues: Dictionary new.
+        character name: 'charon' dialogues: dialogues.
+        character setAvailableDialogue: 'challenge' atLocation: 'underworld'.
         ^character
     ]
 
     CharacterPopulation class >> createTiresias [
-        | character |
+        | character dialogues |
 
+        dialogues := Dictionary new.
+        dialogues at: 'prophet_advice' put: [ :gameState |
+            (gameState getCharacter: 'mother') setAvailableDialogue: 'underwold_chat' atLocation: 'underworld'.
+            (gameState getCharacter: 'achilles') setAvailableDialogue: 'underwold_chat' atLocation: 'underworld'.
+            (gameState getCharacter: 'agamemnon') setAvailableDialogue: 'underwold_chat' atLocation: 'underworld'.
+            (gameState getCharacter: 'circe') setAvailableDialogue: 'sirens_advice' atLocation: 'circe_island'.
+
+            #('Tiresias, the prophet, speaks to you with grave solemnity:'
+            '"I see your future, Odysseus. You may reach Ithaca, but the path will be fraught with hardships.'
+            'The island of Helios and its sacred cattle will be your doom if you dare approach them.'
+            'The fates have already sealed the tragic death of your mother, which you have yet to learn."'
+            'The ferryman urges you to hurry, though he offers you the chance to talk one of three shades: your mother, Achilles, or Agamemnon.'
+            'But choose wisely, for you can only speak with one of them...')
+        ].
         character := NPC new.
-        character name: 'tiresias' dialogues: Dictionary new.
+        character name: 'tiresias' dialogues: dialogues.
         ^character
     ]
 
     CharacterPopulation class >> createMother [
-        | character |
+        | character dialogues |
+        dialogues := Dictionary new.
+        dialogues at: 'underwold_chat' put: [ :gameState |
+            | message sea |
+            gameState addItemToEq: 'charybdis_lure'.
 
+            message := #('A spectral figure appears before you — your mother, Anticleia.'
+            'She tells you with a sorrowful voice, "My dear son, I died of grief and longing for you.'
+            'The days of our separation broke my heart. I wish I could have seen you return to Ithaca."'
+            'With a soft sigh, she hands you a charm — a Charybdis Lure, a precious item that may one day save you from the whirlpool.').
+
+            (gameState getLongerUnderworldStay) ifFalse: [
+                message := message, #('Now you must return to your ship. Further conversations are no longer possible. You`re at sea, leaving the Underworld behind.').
+                sea := gameState getLocation: 'underworld_sea'.
+                gameState setCurrentLocation: sea.
+                sea setAccess: false.
+            ].
+
+            message
+        ].
         character := NPC new.
-        character name: 'mother' dialogues: Dictionary new.
+        character name: 'mother' dialogues: dialogues.
         ^character
     ]
 
     CharacterPopulation class >> createAgamemnon [
-        | character |
+        | character dialogues |
+        dialogues := Dictionary new.
+        dialogues at: 'underwold_chat' put: [ :gameState |
+            | message sea |
 
+            message := #('Agamemnon, the great king of Mycenae, speaks to you from the shadows:'
+            '"I was betrayed by my wife, Clytemnestra, and murdered upon my return to Mycenae. But you, Odysseus, will fare better, I hope."'
+            'He offers you a map of the seas ahead — knowledge of the islands that await you on your journey.'
+            'You`re remainded of an option you have - "show map".').
+
+            (gameState getLongerUnderworldStay) ifFalse: [
+                message := message, #('Now you must return to your ship. Further conversations are no longer possible. You`re at sea, leaving the Underworld behind.').
+                sea := gameState getLocation: 'underworld_sea'.
+                gameState setCurrentLocation: sea.
+                sea setAccess: false.
+            ].
+
+            message
+        ].
         character := NPC new.
-        character name: 'agamemnon' dialogues: Dictionary new.
+        character name: 'agamemnon' dialogues: dialogues.
 
         ^character
     ]
 
     CharacterPopulation class >> createAchilles [
-        | character |
+        | character dialogues |
+        dialogues := Dictionary new.
+        dialogues at: 'underwold_chat' put: [ :gameState |
+            gameState setLongerUnderworldStay: true.
 
+            #('Achilles, the great warrior, speaks to you with fiery intensity:'
+            '"Odysseus, your journey is long, and I know the struggles you face. The gods play cruel games with you.'
+            'But you must know, I feel no peace here in the Underworld. The thought of my death haunts me still."'
+            'Achilles decides to speak to Charon to extend your stay. You now have time to speak to both your mother and Agamemnon for any wisdom they can provide.').
+        ].
         character := NPC new.
-        character name: 'achilles' dialogues: Dictionary new.
+        character name: 'achilles' dialogues: dialogues.
 
         ^character
     ]

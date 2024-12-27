@@ -257,7 +257,7 @@ Object subclass: WorldMap [
     WorldMap class >> createUnderworld [
         | location |
         location := Land new.
-        location name: 'underworld' description: #('You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx.').
+        location name: 'underworld' description: #('This land confuses your mind. You barely sense a presence of Charon, the ferryman who can guide you across the River Styx.').
         location addDirection: 'embark' toLocation: 'underworld_sea'.
         ^location
     ]

@@ -163,6 +163,11 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
+            cmd = 'show map' ifTrue: [
+                self printLines: (gameState showMap).
+                isUnknown := false
+            ].
+
             cmd = 'instructions' ifTrue: [
                 self printInstructions.
                 isUnknown := false
