@@ -76,6 +76,8 @@ Object subclass: WorldMap [
         locations at: 'sun_god_island' put: self createSunGodIsland.
         locations at: 'underworld_sea' put: self createUnderworldSea.
         locations at: 'underworld' put: self createUnderworld.
+        locations at: 'sun_god_storm' put: self createSunGodStorm.
+        locations at: 'calypso_island' put: self createCalypsoIsland.
         ^locations
     ]
 
@@ -100,7 +102,7 @@ Object subclass: WorldMap [
         location name: 'circe_island'
                 description: #(
                     'After disembarking on Circe`s island, you step into a lush, enchanted forest. The air is thick with mystery, and your instincts warn you of hidden dangers.'
-                    'To continue, you can talk with Hermes first or confront Circe, the enchantress, by talking to her directly.'
+                    'You might be able to spot and talk to Hermes around here sometimes. Confront Circe, the enchantress, by talking to her directly.'
                     ).
         location addDirection: 'embark' toLocation: 'circe_sea'.
 
@@ -240,6 +242,26 @@ Object subclass: WorldMap [
         ^location
     ]
 
+    WorldMap class >> createUnderworldSea [
+        | location |
+        location := Sea new.
+        location name: 'underworld_sea' description: #('You have reached the mysterious and eerie waters of the Underworld.').
+        location setAccess: false.
+        location blockedAccessFunc: [ #('The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe`s Sea.') ].
+        location addDirection: 'disembark' toLocation: 'underworld'.
+        location addDirection: 'east' toLocation: 'circe_sea'.
+        location addDirection: 'north' toLocation: 'giants_sea'.
+        ^location
+    ]
+
+    WorldMap class >> createUnderworld [
+        | location |
+        location := Land new.
+        location name: 'underworld' description: #('You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx.').
+        location addDirection: 'embark' toLocation: 'underworld_sea'.
+        ^location
+    ]
+
     WorldMap class >> createSunGodSea [
         | location |
         location := Sea new.
@@ -262,26 +284,39 @@ Object subclass: WorldMap [
                 'Your food supplies are exhausted, and the crew is looking to you for guidance.'
                 'You had better talk to them for advice.'
             ).
+        location addDirection: 'embark' toLocation: 'sun_god_storm'.
         ^location
     ]
 
-    WorldMap class >> createUnderworldSea [
+    WorldMap class >> createSunGodStorm [
         | location |
         location := Sea new.
-        location name: 'underworld_sea' description: #('You have reached the mysterious and eerie waters of the Underworld.').
         location setAccess: false.
-        location blockedAccessFunc: [ #('The path to the Underworld is blocked. You need access to the Underworld to sail west from Circe`s Sea.') ].
-        location addDirection: 'disembark' toLocation: 'underworld'.
-        location addDirection: 'east' toLocation: 'circe_sea'.
-        location addDirection: 'north' toLocation: 'giants_sea'.
+        location name: 'sun_god_storm' description: #('The storm rages on.').
+        location onEnterFunc: [ :gameState |
+            (gameState hasItem: 'strength_elixir') ifTrue: [
+                gameState setCurrentLocation: location.
+                gameState move: 'west'.
+                #('As you leave the island, a thunderous voice echoes: "For your desecration, you shall be punished!"'
+                'The sea rages as a powerful storm descends upon your ship.'
+                'You see all of your crew dying, then you lose consciousness yourself.')
+            ] ifFalse: [
+                gameState setIsGameOver: true.
+                #('As you sail eastward, the wrath of the gods descends upon you.'
+                'A powerful storm engulfs your ship, smashing it to pieces.'
+                'If only you had something, a magic spell or a potion, to give you strength...'
+                'You have perished at sea due to the wrath of the gods.')
+            ]
+        ].
+        location blockedAccessFunc: [ #('The storm rages on, you have no means to embark on a ship now.') ].
+        location addDirection: 'west' toLocation: 'calypso_island'.
         ^location
     ]
 
-    WorldMap class >> createUnderworld [
+    WorldMap class >> createCalypsoIsland [
         | location |
         location := Land new.
-        location name: 'underworld' description: #('You sense an opportunity to talk to Charon, the ferryman who will guide you across the River Styx.').
-        location addDirection: 'embark' toLocation: 'underworld_sea'.
+        location name: 'calypso_island' description: #().
         ^location
     ]
 ]

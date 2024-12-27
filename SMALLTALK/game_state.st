@@ -12,8 +12,8 @@ Object subclass: GameState [
         currentLocation := worldMap at: 'circe_sea'.
         equipment := Dictionary new.
         crewCount := 600.
-        crewProtected := 0.
-        scyllaSurvivalRate := 0.
+        crewProtected := 110.
+        scyllaSurvivalRate := 10.
         underworldChallenge := UnderworldChallenge new.
     ]
 
@@ -23,6 +23,7 @@ Object subclass: GameState [
     getCurrentLocation [ ^currentLocation ]
     setCurrentLocation: aLocation [ currentLocation := aLocation ]
 
+    getLocation: locationName [ ^ worldMap at: locationName ifAbsent: [nil] ]
     getCharacter: characterName [ ^ characterPopulation at: characterName ifAbsent: [nil] ]
 
     getEquipment [ ^equipment ]
@@ -44,7 +45,9 @@ Object subclass: GameState [
     ]
 
     getCrewProtected [ ^ crewProtected ]
+    setCrewProtected: num [ crewProtected := num ]
     getScyllaSurvivalRate [ ^ scyllaSurvivalRate ]
+    setScyllaSurvivalRate: num [ scyllaSurvivalRate := num ]
 
     move: aDirection [
         | new_location |
@@ -85,7 +88,7 @@ Object subclass: GameState [
 
     talk: characterName [
         | character |
-        character := characterPopulation at: characterName.
+        character := characterPopulation at: characterName ifAbsent: [nil].
 
         (character isNil) ifTrue: [
             ^ #('It`s not a time nor place for a talk with someone who`s busy - or someone who`s not even there.')
@@ -103,5 +106,13 @@ Object subclass: GameState [
             ^ #('Charon opens the gates to Hades, and you may now speak with Tiresias.')
         ].
         ^ #('No such challenge stands before you here. Perhaps you`ve already completed it?')
+    ]
+
+    completeElixir [
+        ((self hasItem: 'empty_bottle') and: [self hasItem: 'helios_blood']) ifTrue: [
+            self addItemToEq: 'strength_elixir'.
+            ^ #('You now possess the Elixir of Strength, a potent potion that may save your life.')
+        ].
+        ^ #('You don`t have the knowlege or ingredients needed to complete the elixir.')
     ]
 ]

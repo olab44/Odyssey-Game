@@ -153,6 +153,11 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
+            cmd = 'complete the elixir' ifTrue: [
+                self printLines: (gameState completeElixir).
+                isUnknown := false
+            ].
+
             cmd = 'count crew' ifTrue: [
                 Transcript show: 'You have ', (gameState getCrewCount asString), ' men remaining.'; cr.
                 isUnknown := false
