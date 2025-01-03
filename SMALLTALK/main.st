@@ -163,6 +163,13 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
+            (cmd startsWith: 'take') ifTrue: [
+                | itemName |
+                itemName := cmd copyFrom: 6 to: cmd size.
+                self printLines: (gameState take: itemName).
+                isUnknown := false
+            ].
+
             cmd = 'show map' ifTrue: [
                 self printLines: (gameState showMap).
                 isUnknown := false

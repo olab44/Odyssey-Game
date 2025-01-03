@@ -35,6 +35,7 @@ Object subclass: CharacterPopulation [
         | characters |
         characters := Dictionary new.
         characters at: 'crew' put: self createCrew.
+        " characters at: 'aeolus' put: self createAeolus. "
         characters at: 'circe' put: self createCirce.
         characters at: 'hermes' put: self createHermes.
         characters at: 'charon' put: self createCharon.

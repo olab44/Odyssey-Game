@@ -27,6 +27,7 @@ Object subclass: Location [
     Location >> onEnterFunc: aFunc [ onEnterFunc := aFunc. ]
     Location >> blockedAccessFunc: aFunc [ blockedAccessFunc := aFunc. ]
 
+
     setAccess: isAccessible [ access := isAccessible. ]
 
     addDirection: aDirection toLocation: aLocation [
@@ -67,6 +68,13 @@ Object subclass: WorldMap [
     WorldMap class >> createWorldMap [
         | locations |
         locations := Dictionary new.
+        locations at: 'open_sea' put: self createOpenSea.
+        locations at: 'lotus_sea' put: self createLotusSea.
+        locations at: 'lotus_island' put: self createLotusIsland.
+        locations at: 'polyphemus_sea' put: self createPolyphemusSea.
+        locations at: 'polyphemus_cave' put: self createPolyphemusCave.
+        locations at: 'ithaca_sea' put: self createIthacaSea.
+        locations at: 'aeolus_island' put: self createAeolusIsland.
         locations at: 'circe_sea' put: self createCirceSea.
         locations at: 'circe_island' put: self createCirceIsland.
         locations at: 'giants_sea' put: self createGiantsSea.
@@ -79,6 +87,127 @@ Object subclass: WorldMap [
         locations at: 'sun_god_storm' put: self createSunGodStorm.
         locations at: 'calypso_island' put: self createCalypsoIsland.
         ^locations
+    ]
+
+    WorldMap class >> createOpenSea [
+        | location description hasAeolusAccess hasWindBag |
+        
+        location := Sea new.
+        
+        location name: 'open_sea' description: #('Open sea stretches in all directions, no land in sight. Were you to believe your charts Ithaca lies north.'
+        'North, where you can see a mass of dark clouds covering the sky.').
+        
+        location addDirection: 'north' toLocation: 'ithaca_sea'.
+        location addDirection: 'west' toLocation: 'lotus_sea'.
+
+        location onEnterFunc: [:gameState | 
+            hasAeolusAccess := gameState aeolusAccess.
+            hasWindBag := gameState equipment includesKey: 'wind-bag'.
+
+            description := hasAeolusAccess 
+                ifTrue: [
+                    hasWindBag 
+                        ifTrue: [
+                            #('Calm open sea and the island of a god, nothing more for you here.' 
+                            'You instinctively look towards north, where the sky''s a clear expanse of blue.')
+                        ] 
+                        ifFalse: [
+                            #('Where once was nothing but water, now lies an island, floating on the waves.' 
+                            'The blowing winds feel different, too, and you can''t stop the thought - the home of the wind god.' 
+                            'It means hope, a lone chance of getting help against the storm, if only you disembark and beg.')
+                        ].
+                ] 
+            Transcript show: description first; cr.
+            gameState setCurrentLocation: location.
+        ].
+
+        ^location
+    ]
+
+    WorldMap class >> createLotusSea [
+        | location |
+
+        location := Sea new.
+        location name: 'lotus_sea' description: #(
+            'There is solid land nearby - you notice the glowing light of a fire. It seems inviting.'
+        ).
+
+        location addDirection: 'disembark' toLocation: 'lotus_island'.
+        location addDirection: 'north' toLocation: 'polyphemus_sea'.
+        location addDirection: 'east' toLocation: 'open_sea'.
+
+        ^location
+    ]
+
+    WorldMap class >> createLotusIsland [
+        | location |
+
+        location := Land new.
+        location name: 'lotus_island' description: #(
+            'The island is calm and serene, the whole atmosphere making you sleepy. You see a lake'
+            'that is surrounded by plain houses. The people milling around pay you no mind at all,'
+            'their thoughts far away.'
+            'There is plenty of food on their tables - strange, glowing fruits, which you recognize as'
+            'mind-numbing lotus. There is also an abundance of wine - surely the lotus-eaters would not'
+            'be mad, were you to take a jug for yourself.'
+        ).
+
+        location addDirection: 'embark' toLocation: 'lotus_sea'.
+
+        ^location
+    ]
+
+
+    WorldMap class >> createPolyphemusSea [
+        | location |
+
+        location := Sea new.
+        location name: 'polyphemus_sea' description: #(
+            'You are not far from an island, rugged shoreline making way to green fields and rocky mountains'
+        'full of caves. One cave in particular looks easy to reach.'
+        ).
+        
+        location addDirection: 'disembark' toLocation: 'polyphemus_cave'.
+        location addDirection: 'east' toLocation: 'ithaca_sea'.
+        location addDirection: 'south' toLocation: 'lotus_sea'.
+
+        ^location
+    ]
+
+    WorldMap class >> createPolyphemusCave [
+        | location |
+
+        location := Land new.
+        location name: 'polyphemus_cave' description: #(
+            'You walk a long while, far into the cave, when deep voice echoes through the darkness.'
+        ).
+        location addDirection: 'embark' toLocation: 'polyphemus_sea'.
+
+        ^location
+    ]
+
+    WorldMap class >> createIthacaSea [
+        | location |
+
+        location := Sea new.
+        location name: 'ithaca_sea' description: #('TO DO').
+        location addDirection: 'south' toLocation: 'open_sea'.
+        location addDirection: 'west' toLocation: 'polyphemus_sea'.
+
+        ^location
+    ]
+
+    WorldMap class >> createAeolusIsland [
+        | location |
+
+        location := Land new.
+        location name: 'aeolus_island' description: #(
+            'The home of the wind god, Aeolus, is just as unique as its owner might suggest. Loud and playful'
+            'with various puffs of clouds twisting and turning in the air, as if alive.'
+            'Aeolus himself flies around as well, never in one place for long. You feel his gaze following you.'
+        ).
+        location addDirection: 'embark' toLocation: 'open_sea'.
+        ^location
     ]
 
     WorldMap class >> createCirceSea [

@@ -1,5 +1,5 @@
 Object subclass: GameState [
-    | isGameOver worldMap characterPopulation currentLocation equipment crewCount crewProtected scyllaSurvivalRate underworldChallenge longerUnderworldStay|
+    | isGameOver worldMap characterPopulation currentLocation equipment crewCount aeolusAccess crewProtected scyllaSurvivalRate underworldChallenge longerUnderworldStay|
 
     GameState class >> new [
         ^ super new init
@@ -9,9 +9,10 @@ Object subclass: GameState [
         isGameOver := false.
         worldMap := WorldMap createWorldMap.
         characterPopulation := CharacterPopulation createCharacters.
-        currentLocation := worldMap at: 'circe_sea'.
+        currentLocation := worldMap at: 'open_sea'.
         equipment := Dictionary new.
         crewCount := 600.
+        aeolusAccess := false.
         crewProtected := 0.
         scyllaSurvivalRate := 0.
         underworldChallenge := UnderworldChallenge new.
@@ -101,8 +102,22 @@ Object subclass: GameState [
     ]
 
     take: itemName [
-        "take item if in location and not already owned"
-    ]
+    | item location |
+    
+    location := self getCurrentLocation.
+    item := location getItemNamed: itemName.
+    
+    item ifNotNil: [
+        "Add item to inventory or whatever action you need"
+        self addToInventory: item.
+        location removeItem: item.
+        ^'You have taken ', itemName
+    ].
+    
+    ^'There is no ', itemName, ' here to take.'
+]
+
+
 
     showMap [
 
