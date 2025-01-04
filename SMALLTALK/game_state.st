@@ -19,6 +19,15 @@ Object subclass: GameState [
         longerUnderworldStay := false.
     ]
 
+    aeolusAccess [
+        ^aeolusAccess
+    ]
+
+    aeolusAccess: aBoolean [
+    aeolusAccess := aBoolean.
+]
+
+
     getIsGameOver [ ^isGameOver ]
     setIsGameOver: aBoolean [ isGameOver := aBoolean ]
 
@@ -29,7 +38,9 @@ Object subclass: GameState [
     getCharacter: characterName [ ^ characterPopulation at: characterName ifAbsent: [nil] ]
 
     getEquipment [ ^equipment ]
-    hasItem: itemName [ ^ (equipment includesKey: itemName) ]
+    hasItem: itemName [
+        ^equipment includesKey: itemName
+    ]
     addItemToEq: itemName [
         | currentCount |
         currentCount := equipment at: itemName ifAbsent: [ 0 ]. "Get current count or 0 if absent"
@@ -45,6 +56,8 @@ Object subclass: GameState [
                 'That`s when you realize - all of your men... dead. You`re not far behind them.')
         ].
     ]
+
+
 
     getCrewProtected [ ^ crewProtected ]
     setCrewProtected: num [ crewProtected := num ]
@@ -80,6 +93,7 @@ Object subclass: GameState [
 
         ^ new_location onEnter: self
     ]
+
     embark [
         | new_location |
         currentLocation getType = 'sea' ifTrue: [ ^ #('You`re already on a ship or there`s no ship at all.'). ].

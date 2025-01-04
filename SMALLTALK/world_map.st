@@ -93,19 +93,15 @@ Object subclass: WorldMap [
         | location description hasAeolusAccess hasWindBag |
         
         location := Sea new.
-        
-        location name: 'open_sea' description: #('Open sea stretches in all directions, no land in sight. Were you to believe your charts Ithaca lies north.'
-        'North, where you can see a mass of dark clouds covering the sky.').
-        
-        location addDirection: 'north' toLocation: 'ithaca_sea'.
-        location addDirection: 'west' toLocation: 'lotus_sea'.
+        location name: 'open_sea' description: #('Open sea stretches in all directions, no land in sight.').
 
-        location onEnterFunc: [:gameState | 
+        location onEnterFunc: [ :gameState |
+            | hasAeolusAccess hasWindBag description |
+            
             hasAeolusAccess := gameState aeolusAccess.
-            hasWindBag := gameState equipment includesKey: 'wind-bag'.
+            hasWindBag := gameState getEquipment includesKey: 'wind-bag'.
 
-            description := hasAeolusAccess 
-                ifTrue: [
+            description := hasAeolusAccess ifTrue: [
                     hasWindBag 
                         ifTrue: [
                             #('Calm open sea and the island of a god, nothing more for you here.' 
@@ -115,11 +111,16 @@ Object subclass: WorldMap [
                             #('Where once was nothing but water, now lies an island, floating on the waves.' 
                             'The blowing winds feel different, too, and you can''t stop the thought - the home of the wind god.' 
                             'It means hope, a lone chance of getting help against the storm, if only you disembark and beg.')
-                        ].
-                ] 
-            Transcript show: description first; cr.
-            gameState setCurrentLocation: location.
+                        ]
+                ]
+                ifFalse: [
+                    #('Open sea stretches in all directions, no land in sight. Were you to believe your charts Ithaca lies north.'
+                    'North, where you can see a mass of dark clouds covering the sky.')
+                ]
         ].
+
+        location addDirection: 'north' toLocation: 'ithaca_sea'.
+        location addDirection: 'west' toLocation: 'lotus_sea'.
 
         ^location
     ]
@@ -159,7 +160,7 @@ Object subclass: WorldMap [
 
 
     WorldMap class >> createPolyphemusSea [
-        | location |
+        | location name hasWine crewDeaths |
 
         location := Sea new.
         location name: 'polyphemus_sea' description: #(
@@ -176,15 +177,53 @@ Object subclass: WorldMap [
 
     WorldMap class >> createPolyphemusCave [
         | location |
-
         location := Land new.
         location name: 'polyphemus_cave' description: #(
-            'You walk a long while, far into the cave, when deep voice echoes through the darkness.'
+            'You walk a long while, far into the cave, when a deep voice echoes through the darkness.'
         ).
+
+        location onEnterFunc: [:gameState |
+            | name hasWine currentCrew loss newCrewCount message aeolusAccess |
+
+            Transcript show: 'You walk a long while, far into the cave, when a deep voice echoes through the darkness.'; cr.
+            Transcript show: 'Who are you? What are you doing, breaking into the house of Polyphemus?'; cr.
+            Transcript show: 'A single, massive eye opens behind you, glowing in the light of your torch. Polyphemus does not look happy as he waits for an answer.'; cr.
+            Transcript show: 'What is your name, stranger?'; cr.
+            name := FileStream stdin nextLine.
+            hasWine := gameState hasItem: 'wine'.
+            currentCrew := gameState getCrewCount.
+            gameState aeolusAccess: true.
+
+            hasWine ifTrue: [
+                Transcript show: 'At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim for the cyclops'' still open mouth.'; cr.
+                Transcript show: 'The wine from lotus flowers makes his thoughts and movements sluggish. He manages to land only a few blows.'; cr.
+                gameState removeFromInventory: 'wine'.
+                loss := 6.
+            ] ifFalse: [
+                Transcript show: 'The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave floor.'; cr.
+                loss := 44.
+            ].
+
+            (name = 'nobody') ifTrue: [
+                Transcript show: 'But no one comes to his aid. It is your opportunity to leave the cave, embark on a ship and get the hell away.'; cr.
+            ] ifFalse: [
+                Transcript show: 'Then there is a sound of heavy steps coming from the direction of the only exit'; cr.
+                Transcript show: 'There are more of them. Much, much more. You are not leaving this cave alive.'; cr.
+                gameState setIsGameOver: true.
+            ].
+
+            newCrewCount := currentCrew - loss.
+            message := location getDescription.
+            message := message, (gameState killCrew: loss).
+            message.
+        ].
+
         location addDirection: 'embark' toLocation: 'polyphemus_sea'.
 
         ^location
     ]
+
+
 
     WorldMap class >> createIthacaSea [
         | location |
