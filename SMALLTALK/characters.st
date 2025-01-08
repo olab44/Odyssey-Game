@@ -35,7 +35,9 @@ Object subclass: CharacterPopulation [
         | characters |
         characters := Dictionary new.
         characters at: 'crew' put: self createCrew.
-        " characters at: 'aeolus' put: self createAeolus. "
+        characters at: 'lotus-eaters' put: self createLotusEaters.
+        characters at: 'polyphemus' put: self createPolyphemus.
+        characters at: 'aeolus' put: self createAeolus.
         characters at: 'circe' put: self createCirce.
         characters at: 'hermes' put: self createHermes.
         characters at: 'charon' put: self createCharon.
@@ -50,6 +52,22 @@ Object subclass: CharacterPopulation [
         | character dialogues |
 
         dialogues := Dictionary new.
+
+        dialogues at: 'crew_open_sea' put: [ :gameState |
+            | message |
+                (gameState hasItem: 'wind-bag') ifTrue: [
+                    message := #('The crews overly eager about the wind-bag, you cannot help but notice.'
+                        'They whisper of treasure and trail off as soon as you come close - clearly not in a mood to talk.')
+                ] ifFalse: [
+                    (gameState aeolusAccess) ifTrue: [
+                        message := #('Your second-in-command does not at all like the idea of asking a god for help.'
+                            '“They are easy to anger, captain, and there is only so much time before your luck with them runs out for good.”')
+                    ] ifFalse: [
+                        message := #('Your men tell you that there is nothing to look for east and south from here, but west - west is where the birds fly, which probably means solid land.')
+                    ].
+            ].
+            message
+        ].
         dialogues at: 'post_circe_confrontation' put: [ :gameState |
             (gameState getCharacter: 'circe') setAvailableDialogue: 'underworld_advice' atLocation: 'circe_island'.
 
@@ -99,7 +117,68 @@ Object subclass: CharacterPopulation [
         character := NPC new.
         character name: 'crew' dialogues: dialogues.
         character setAvailableDialogue: 'hangry' atLocation: 'sun_god_island'.
+        character setAvailableDialogue: 'crew_open_sea' atLocation: 'open_sea'.
 
+        ^character
+    ]
+
+    CharacterPopulation class >> createLotusEaters [
+        | character dialogues |
+
+        dialogues := Dictionary new.
+        dialogues at: 'drunk' put: [ :gameState |
+            #('It takes a while to find someone present enough to talk to you. Most of the lotus-eaters'
+        'are too far gone to even notice you. The talk itself does not amount to much, though.'
+        'The old woman speaks of great dangeres up north, but she assures you everyting is far'
+        'easier with wine.').
+        ].
+        character := NPC new.
+        character name: 'lotus-eaters' dialogues: dialogues.
+        character setAvailableDialogue: 'drunk' atLocation: 'lotus_island'.
+        ^character
+    ]
+
+    CharacterPopulation class >> createPolyphemus [
+        | character dialogues |
+
+        dialogues := Dictionary new.
+        dialogues at: 'sheep' put: [ :gameState |
+            | currentCount message |
+            message := #('Wrong decision.'
+                'Polyphemus does not hear any of the words you have spoken, but he does hear your voice and'
+                'blindly strikes in your direction, enraged. You barely avoid being crushed to death.'
+            ).
+            currentCount := gameState getCrewCount.
+            currentCount > 84 ifTrue: [
+            message := message, #('Some of your men are not so fast.').
+                gameState killCrew: 4.
+            ].
+            message
+        ].
+
+        character := NPC new.
+        character name: 'aeolus' dialogues: dialogues.
+        character setAvailableDialogue: 'sheep' atLocation: 'polyphemus_cave'.
+
+        ^character
+    ]
+
+    CharacterPopulation class >> createAeolus [
+        | character dialogues |
+
+        dialogues := Dictionary new.
+        dialogues at: 'windy' put: [ :gameState |
+            #('You kneel down and describe your situation, knowing that the god can hear.'
+        'Your ask for assistance is first met with disheartening nothing, but then - laughter'
+        'Aeolus comes to a stop right before you. I suppose we could play a game, Odysseus of Ithaca'
+        'I will show you a bag with the winds of the storm all trapped. If it gets opened, whatever'
+        'the reason... well, good luck.'
+        'Do be careful who you trust, captain, you never really know.'
+        'And with that, he is gone on a breeze again, leaving a tied wind-bag at your feet').
+        ].
+        character := NPC new.
+        character name: 'aeolus' dialogues: dialogues.
+        character setAvailableDialogue: 'windy' atLocation: 'aeolus_island'.
         ^character
     ]
 

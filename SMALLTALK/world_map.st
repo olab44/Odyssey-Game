@@ -175,14 +175,14 @@ Object subclass: WorldMap [
 
 
     WorldMap class >> createPolyphemusSea [
-        | location name hasWine crewDeaths |
+        | location |
 
         location := Sea new.
         location name: 'polyphemus_sea' description: #(
-            'You are not far from an island, rugged shoreline making way to green fields and rocky mountains'
+        'You are not far from an island, rugged shoreline making way to green fields and rocky mountains'
         'full of caves. One cave in particular looks easy to reach.'
         ).
-        
+
         location addDirection: 'disembark' toLocation: 'polyphemus_cave'.
         location addDirection: 'east' toLocation: 'ithaca_sea'.
         location addDirection: 'south' toLocation: 'lotus_sea'.
@@ -193,9 +193,8 @@ Object subclass: WorldMap [
     WorldMap class >> createPolyphemusCave [
         | location |
         location := Land new.
-        location name: 'polyphemus_cave' description: #(
-            'You walk a long while, far into the cave, when a deep voice echoes through the darkness.'
-        ).
+        location name: 'polyphemus_cave' description: ''.
+
         location addDirection: 'embark' toLocation: 'polyphemus_sea'.
 
         location onEnterFunc: [:gameState |
@@ -212,27 +211,29 @@ Object subclass: WorldMap [
             gameState setCurrentLocation: location.
 
             hasWine ifTrue: [
-                 #('At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim for the cyclops'' still open mouth.'
-                'The wine from lotus flowers makes his thoughts and movements sluggish. He manages to land only a few blows.').
+                #('At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim for the cyclops'' still open mouth.'
+                'The wine from lotus flowers makes his thoughts and movements sluggish. He manages to land only a few blows.')
+                    do: [:msg | Transcript show: msg; cr.].
                 gameState removeItemFromEq: 'wine'.
                 loss := 6.
-
             ] ifFalse: [
-                #('The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave floor.').
+                #('The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave floor.')
+                    do: [:msg | Transcript show: msg; cr.].
                 loss := 44.
-            ]. (name = 'nobody') ifTrue: [
-                #('But no one comes to his aid. It is your opportunity to leave the cave, embark on a ship and get the hell away.').
-            ] ifFalse: [
-                #('Then there is a sound of heavy steps coming from the direction of the only exit').
-                #('There are more of them. Much, much more. You are not leaving this cave alive.').
-                gameState setIsGameOver: true.
             ].
 
+            (name = 'nobody') ifTrue: [
+                #('But no one comes to his aid. It is your opportunity to leave the cave, embark on a ship and get the hell away.'
+                'You sense that something in the air has changed, you should scan the see once more')
+            ] ifFalse: [
+                #('Then there is a sound of heavy steps coming from the direction of the only exit.'
+                'There are more of them. Much, much more. You are not leaving this cave alive.')
+                gameState setIsGameOver: true.
+            ].
         ].
 
         ^location
     ]
-
 
 
 WorldMap class >> createIthacaSea [
@@ -245,7 +246,7 @@ WorldMap class >> createIthacaSea [
     location addDirection: 'west' toLocation: 'polyphemus_sea'.
 
     location onEnterFunc: [ :gameState |
-        | description stormDescription randomPlace |
+        | description direction stormDescription randomPlace |
 
         (gameState hasItem: 'wind-bag') ifTrue: [
             gameState setCurrentLocation: location.
@@ -259,40 +260,32 @@ WorldMap class >> createIthacaSea [
                              'but Ithaca has never been closer in the last ten years, and the way home is through.').
         ].
 
-        " gameState onDirection: [ :direction |
-            direction ~= 'north' ifTrue: [
-                (gameState hasItem: 'wind-bag') ifTrue: [
-                    stormDescription := #('With the storm contained, it should not take much longer to reach the coast. Mere weeks.'
-                                          'You wish you could relax now, but the wind gods words will not let you.'
-                                          'The bag lies open. The raging storm tears at your ships with vengeance, vicious currents leading you to distant shores far, far away from Ithaca.').
-                    gameState printLines: stormDescription.
-                    gameState removeItem: 'wind-bag'.
-                    gameState setCurrentLocation: 'circe_sea'.
-                ] ifFalse: [
-                    (gameState crewSize > 150) ifTrue: [
-                        stormDescription := #('You lose ships - the screams of over a hundred men are drowned out by the storm as they disappear below the waves.'
-                                              'You cannot control your course as the currents are too strong.'
-                                              'You should look around to see where you have ended up.').
+        direction := gameState getDirection.
 
-                        gameState printLines: stormDescription.
-                        gameState decreaseCrew: 150.
+        direction = 'south' ifTrue: [
+                #('You turn south, seeking refuge in the open sea, away from the storm.'
+                    'The waves are rough, but they are not as violent as those ahead.').
+                gameState setCurrentLocation: 'open_sea'.
+                ^self.
+            ].
+        
+        direction = 'north' ifTrue: [
+        (gameState hasItem: 'wind-bag') ifTrue: [
+            #('With the storm contained, you sail toward Circe\s Sea. The waters are calmer here.'
+                                 'The wind gods seem to be at peace with you for now.').
+            
+            gameState setCurrentLocation: 'circe_sea'.
+        ] ifFalse: [
+            stormDescription := #('The storm is ferocious, and the winds push you off course. You lose many men to the storm.'
+                                 'Your ship is thrown far off its intended path, and you find yourself in unknown waters.').
+            gameState printLines: stormDescription.
+            gameState killCrew: 150.
 
-                        randomPlace := #(lotus_sea ithaca_sea polyphemus_sea open_sea) at: (1 to: 4) asArray atRandom.
+            randomPlace := #('lotus_sea' 'ithaca_sea' 'polyphemus_sea' 'open_sea') atRandom.
+            gameState setCurrentLocation: randomPlace.
+        ].
+    ].
 
-                        gameState setCurrentLocation: randomPlace.
-                    ] ifFalse: [
-                        stormDescription := #('The storm is your final fight, the only thing still blocking your way home -'
-                                              'and so you are ready to risk it all.'
-                                              'You try your best...'
-                                              'It is just not enough.'
-                                              'Your ship is the last one from the fleet to fall victim to the crashing waves.').
-
-                        gameState printLines: stormDescription.
-                        gameState setIsGameOver: true.
-                    ]
-                ]
-            ]
-        ]. "
     ].
 
     ^location
