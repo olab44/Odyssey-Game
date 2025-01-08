@@ -41,11 +41,27 @@ Object subclass: Location [
     getType [ ^type ]
     getDescription [ ^description ]
 
+    addItem: itemName [
+        "Add an item to the location"
+        objects add: itemName.
+    ]
+
+    removeItem: itemName [
+        "Remove an item from the location, if it exists"
+        ^ objects remove: itemName ifAbsent: [ nil ].
+    ]
+
+    getItemNamed: itemName [
+        "Retrieve an item by name if it exists, else return nil"
+        ^ objects detect: [ :item | item = itemName ] ifNone: [ nil ].
+    ]
+
     onEnter: aGameState [
         (access) ifTrue: [ ^ onEnterFunc value: aGameState ].
         ^ blockedAccessFunc value
     ]
 ]
+
 Location subclass: Sea [
     Sea class >> new [
         ^super new initSea
@@ -153,6 +169,7 @@ Object subclass: WorldMap [
             'be mad, were you to take a jug for yourself.'
         ).
 
+        location addItem: 'wine'.
         location addDirection: 'embark' toLocation: 'lotus_sea'.
 
         ^location

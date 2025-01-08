@@ -24,8 +24,9 @@ Object subclass: GameState [
     ]
 
     aeolusAccess: aBoolean [
-    aeolusAccess := aBoolean.
-]
+        aeolusAccess := aBoolean.
+    ]
+
 
 
     getIsGameOver [ ^isGameOver ]
@@ -43,7 +44,7 @@ Object subclass: GameState [
     ]
     addItemToEq: itemName [
         | currentCount |
-        currentCount := equipment at: itemName ifAbsent: [ 0 ]. "Get current count or 0 if absent"
+        currentCount := equipment at: itemName ifAbsent: [ 0 ].
         equipment at: itemName put: currentCount + 1.
     ]
 
@@ -116,20 +117,19 @@ Object subclass: GameState [
     ]
 
     take: itemName [
-    | item location |
-    
-    location := self getCurrentLocation.
-    item := location getItemNamed: itemName.
-    
-    item ifNotNil: [
-        "Add item to inventory or whatever action you need"
-        self addToInventory: item.
-        location removeItem: item.
-        ^'You have taken ', itemName
-    ].
-    
-    ^'There is no ', itemName, ' here to take.'
-]
+        | item location |
+        
+        location := self getCurrentLocation.
+        item := location getItemNamed: itemName.
+        
+        item ifNotNil: [
+            self addItemToEq: item.  "Add item to inventory"
+            location removeItem: itemName.
+            ^ 'You have taken ', itemName
+        ].
+        
+        ^ 'There is no ', itemName, ' here to take.'
+    ]
 
 
 
