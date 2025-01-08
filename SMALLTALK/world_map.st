@@ -42,17 +42,14 @@ Object subclass: Location [
     getDescription [ ^description ]
 
     addItem: itemName [
-        "Add an item to the location"
         objects add: itemName.
     ]
 
     removeItem: itemName [
-        "Remove an item from the location, if it exists"
         ^ objects remove: itemName ifAbsent: [ nil ].
     ]
 
     getItemNamed: itemName [
-        "Retrieve an item by name if it exists, else return nil"
         ^ objects detect: [ :item | item = itemName ] ifNone: [ nil ].
     ]
 
@@ -214,7 +211,7 @@ Object subclass: WorldMap [
             hasWine ifTrue: [
                 Transcript show: 'At the last second, you grab the flask of wine taken from the island of lotus-eaters and aim for the cyclops'' still open mouth.'; cr.
                 Transcript show: 'The wine from lotus flowers makes his thoughts and movements sluggish. He manages to land only a few blows.'; cr.
-                gameState removeFromInventory: 'wine'.
+                gameState removeItemFromEq: 'wine'.
                 loss := 6.
             ] ifFalse: [
                 Transcript show: 'The fight is long and grueling, with much death on your side. Pools of fresh blood form on the cave floor.'; cr.

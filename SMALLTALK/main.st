@@ -166,7 +166,7 @@ Object subclass: Game [
             (cmd startsWith: 'take') ifTrue: [
                 | itemName |
                 itemName := cmd copyFrom: 6 to: cmd size.
-                self printLines: (gameState take: itemName).
+                self printLines: { (gameState take: itemName) }.
                 isUnknown := false
             ].
 

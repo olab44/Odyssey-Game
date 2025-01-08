@@ -48,6 +48,20 @@ Object subclass: GameState [
         equipment at: itemName put: currentCount + 1.
     ]
 
+    removeItemFromEq: itemName [
+    | currentCount |
+    currentCount := equipment at: itemName ifAbsent: [ nil ].
+    currentCount ifNotNil: [
+        currentCount > 1 ifTrue: [
+            equipment at: itemName put: currentCount - 1.
+        ] ifFalse: [
+            equipment removeKey: itemName.
+        ].
+    ] ifNil: [
+        'Item not found in equipment.'.
+    ].
+]
+
     getCrewCount [ ^ crewCount ]
     killCrew: num [
         crewCount := crewCount - num.
@@ -117,21 +131,23 @@ Object subclass: GameState [
     ]
 
     take: itemName [
-        | item location |
+        | item location inventory |
         
-        location := self getCurrentLocation.
+        location := self getCurrentLocation. 
         item := location getItemNamed: itemName.
+        inventory := self getEquipment.  
+        (inventory includesKey: itemName) ifTrue: [
+            ^ 'You have already taken ', itemName.
+        ].
         
         item ifNotNil: [
-            self addItemToEq: item.  "Add item to inventory"
+            self addItemToEq: itemName.
             location removeItem: itemName.
-            ^ 'You have taken ', itemName
+            ^ 'You have taken ', itemName.
         ].
         
         ^ 'There is no ', itemName, ' here to take.'
     ]
-
-
 
     showMap [
 
