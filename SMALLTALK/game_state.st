@@ -19,15 +19,8 @@ Object subclass: GameState [
         longerUnderworldStay := false.
     ]
 
-    aeolusAccess [
-        ^aeolusAccess
-    ]
-
-    aeolusAccess: aBoolean [
-        aeolusAccess := aBoolean.
-    ]
-
-
+    aeolusAccess [^aeolusAccess]
+    aeolusAccess: aBoolean [aeolusAccess := aBoolean.]
 
     getIsGameOver [ ^isGameOver ]
     setIsGameOver: aBoolean [ isGameOver := aBoolean ]
@@ -49,18 +42,18 @@ Object subclass: GameState [
     ]
 
     removeItemFromEq: itemName [
-    | currentCount |
-    currentCount := equipment at: itemName ifAbsent: [ nil ].
-    currentCount ifNotNil: [
-        currentCount > 1 ifTrue: [
-            equipment at: itemName put: currentCount - 1.
-        ] ifFalse: [
-            equipment removeKey: itemName.
+        | currentCount |
+        currentCount := equipment at: itemName ifAbsent: [ nil ].
+        currentCount ifNotNil: [
+            currentCount > 1 ifTrue: [
+                equipment at: itemName put: currentCount - 1.
+            ] ifFalse: [
+                equipment removeKey: itemName.
+            ].
+        ] ifNil: [
+            'Item not found in equipment.'.
         ].
-    ] ifNil: [
-        'Item not found in equipment.'.
-    ].
-]
+    ]
 
     getCrewCount [ ^ crewCount ]
     killCrew: num [
@@ -71,8 +64,6 @@ Object subclass: GameState [
                 'That`s when you realize - all of your men... dead. You`re not far behind them.')
         ].
     ]
-
-
 
     getCrewProtected [ ^ crewProtected ]
     setCrewProtected: num [ crewProtected := num ]
@@ -98,12 +89,18 @@ Object subclass: GameState [
 
         ^ new_location onEnter: self
     ]
+
     disembark [
         | new_location |
         currentLocation getType = 'land' ifTrue: [ ^ #('You`re already on land.'). ].
         new_location := worldMap at: (currentLocation getDirection: 'disembark') ifAbsent: [nil].
         new_location isNil ifTrue: [
             ^ #('There`s no solid land to disembark on.').
+        ].
+
+        (new_location getName = 'polyphemus_cave' and: [self aeolusAccess]) ifTrue: [
+            ^ #('Going back to the Cyclops cave after all that has happened is a suicide. You crew knows it'
+            'and refuses to risk it. You should know better, too').
         ].
 
         ^ new_location onEnter: self
