@@ -22,6 +22,7 @@ Object subclass: GameState [
     aeolusAccess [^aeolusAccess]
     aeolusAccess: aBoolean [aeolusAccess := aBoolean.]
 
+
     getIsGameOver [ ^isGameOver ]
     setIsGameOver: aBoolean [ isGameOver := aBoolean ]
 
@@ -74,20 +75,66 @@ Object subclass: GameState [
     setLongerUnderworldStay: longerStay [ longerUnderworldStay := longerStay ]
 
     move: aDirection [
-        | new_location |
+        | new_location randomDestination crewCount |
 
         aDirection = 'embark' ifTrue: [ ^ self embark. ].
         aDirection = 'disembark' ifTrue: [ ^ self disembark. ].
 
-        currentLocation getType = 'land' ifTrue: [ ^ #('You need to embark on a ship first.'). ].
+        currentLocation getType = 'land' ifTrue: [ 
+            ^ #('You need to embark on a ship first.') 
+        ].
 
         new_location := worldMap at: (currentLocation getDirection: aDirection) ifAbsent: [nil].
 
-        new_location isNil ifTrue: [
-            ^ #('You set sail, but you either find nothing of note in that direction, or the way`s impassable. You end up turning back.').
+        "ithaca sea storm logic"
+        (currentLocation getName = 'ithaca_sea' and: [aDirection ~= 'south']) ifTrue: [
+            (self hasItem: 'wind-bag') ifTrue: [
+                Transcript show: 'With the storm contained, it should not take much longer to reach the coast. Mere weeks.'; cr.
+                Transcript show: 'You wish you could relax now, but the wind gods'' words won''t let you. ''Be careful who you'; cr.
+                Transcript show: 'trust, captain pushes you to keep your eyes open at all times.'; cr.
+                Transcript show: 'You guard the wind-bag to the best of your abilities, but the need to sleep proves stronger eventually.'; cr.
+                Transcript show: 'The dream is a lovely one - the family reunited, Penelope and Telemachus in your arms.'; cr.
+                Transcript show: 'The reality is not. The bag lies open. The raging storm tears at your ships with vengeance, vicious'; cr.
+                Transcript show: 'currents leading you to distant shores far, far away from Ithaca.'; cr.
+                self removeItemFromEq: 'wind-bag'.
+                new_location := worldMap at: 'circe_sea'.
+                ^ new_location onEnter: self.
+            ] ifFalse: [
+                crewCount := self getCrewCount.
+                (crewCount > 150) ifTrue: [
+                    Transcript show: 'It turns out you cannot beat the force of nature that easily. You lose ships - the screams of over'; cr.
+                    Transcript show: 'na hundred men are drowned out by the storm as they disappear below the waves.'; cr.
+                    self killCrew: 150.
+                    randomDestination := (1 to: 4) atRandom.
+                    new_location := self getRandomLocation: randomDestination.
+                    Transcript show: 'You cannot control your course as the currents are too strong. You should look around to see where you have ended up.'; cr.
+                    ^ new_location onEnter: self.
+                ] ifFalse: [
+                    Transcript show: 'The storm is your final fight, the only thing still blocking your way home - and so you are ready'; cr.
+                    Transcript show: 'to risk it all, look for the way through even when there seems to be none.'; cr.
+                    Transcript show: 'You try your best...'; cr.
+                    Transcript show: 'It is just not enough.'; cr.
+                    Transcript show: 'Your ship is the last one from the fleet to fall victim to the crashing waves.'; cr.
+                    self setIsGameOver: true.
+                ].
+            ].
         ].
 
-        ^ new_location onEnter: self
+        new_location isNil ifTrue: [
+            ^ #('You set sail, but you either find nothing of note in that direction, or the way`s impassable. You end up turning back.')
+        ].
+
+        ^ new_location onEnter: self.
+    ]
+
+    getRandomLocation: randomDestination [
+        | destinations |
+        destinations := Array with: (worldMap at: 'lotus_sea')
+                                with: (worldMap at: 'ithaca_sea')
+                                with: (worldMap at: 'polyphemus_sea')
+                                with: (worldMap at: 'open_sea').
+
+        ^ destinations at: randomDestination ifAbsent: [ worldMap at: 'ithaca_sea' ].
     ]
 
     disembark [

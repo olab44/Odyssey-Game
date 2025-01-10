@@ -27,7 +27,6 @@ Object subclass: Location [
     Location >> onEnterFunc: aFunc [ onEnterFunc := aFunc. ]
     Location >> blockedAccessFunc: aFunc [ blockedAccessFunc := aFunc. ]
 
-
     setAccess: isAccessible [ access := isAccessible. ]
 
     addDirection: aDirection toLocation: aLocation [
@@ -236,60 +235,34 @@ Object subclass: WorldMap [
     ]
 
 
-WorldMap class >> createIthacaSea [
-    | location |
+    WorldMap class >> createIthacaSea [
+        | location |
 
-    location := Sea new.
-    location name: 'ithaca_sea' description: #('Ithaca has never been closer in the last ten years and the way home is through').
+        location := Sea new.
+        location name: 'ithaca_sea' description: #('Ithaca has never been closer in the last ten years and the way home is through').
 
-    location addDirection: 'south' toLocation: 'open_sea'.
-    location addDirection: 'west' toLocation: 'polyphemus_sea'.
+        location addDirection: 'south' toLocation: 'open_sea'.
+        location addDirection: 'west' toLocation: 'polyphemus_sea'.
 
-    location onEnterFunc: [ :gameState |
-        | description direction stormDescription randomPlace |
+        location onEnterFunc: [ :gameState |
+            | description |
 
-        (gameState hasItem: 'wind-bag') ifTrue: [
-            gameState setCurrentLocation: location.
-            description := #('The sky is clear, the water smooth - no storm, no tidal wave.'
-                             'You see Ithaca - your destination, your kingdom, your home - on the horizon.'
-                             'You can already feel the ghost of your wifes embrace.').
-        ] ifFalse: [
-            gameState setCurrentLocation: location.
-            description := #('Your way is blocked by giant waves and giant storms.'
-                             'You should probably turn back south towards calmer waters -'
-                             'but Ithaca has never been closer in the last ten years, and the way home is through.').
-        ].
-
-        direction := gameState getDirection.
-
-        direction = 'south' ifTrue: [
-                #('You turn south, seeking refuge in the open sea, away from the storm.'
-                    'The waves are rough, but they are not as violent as those ahead.').
-                gameState setCurrentLocation: 'open_sea'.
-                ^self.
+            (gameState hasItem: 'wind-bag') ifTrue: [
+                gameState setCurrentLocation: location.
+                description := #('The sky is clear, the water smooth - no storm, no tidal wave.'
+                                'You see Ithaca - your destination, your kingdom, your home - on the horizon.'
+                                'You can already feel the ghost of your wifes embrace.').
+            ] ifFalse: [
+                gameState setCurrentLocation: location.
+                description := #('Your way is blocked by giant waves and giant storms.'
+                                'You should probably turn back south towards calmer waters -'
+                                'but Ithaca has never been closer in the last ten years, and the way home is through.').
             ].
-        
-        direction = 'north' ifTrue: [
-        (gameState hasItem: 'wind-bag') ifTrue: [
-            #('With the storm contained, you sail toward Circe\s Sea. The waters are calmer here.'
-                                 'The wind gods seem to be at peace with you for now.').
-            
-            gameState setCurrentLocation: 'circe_sea'.
-        ] ifFalse: [
-            stormDescription := #('The storm is ferocious, and the winds push you off course. You lose many men to the storm.'
-                                 'Your ship is thrown far off its intended path, and you find yourself in unknown waters.').
-            gameState printLines: stormDescription.
-            gameState killCrew: 150.
 
-            randomPlace := #('lotus_sea' 'ithaca_sea' 'polyphemus_sea' 'open_sea') atRandom.
-            gameState setCurrentLocation: randomPlace.
         ].
-    ].
 
-    ].
-
-    ^location
-]
+        ^location
+    ]
 
 
 
