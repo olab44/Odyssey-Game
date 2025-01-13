@@ -45,6 +45,7 @@ Object subclass: CharacterPopulation [
         characters at: 'mother' put: self createMother.
         characters at: 'agamemnon' put: self createAgamemnon.
         characters at: 'achilles' put: self createAchilles.
+        " characters at: 'calypso_island' put: self createCalypso. "
         ^characters
     ]
 
@@ -387,4 +388,26 @@ Object subclass: CharacterPopulation [
 
         ^character
     ]
+
+
+    " CharacterPopulation class >> createCalypso [
+        | character dialogues |
+
+        dialogues := Dictionary new.
+
+        dialogues at: 'calypso_island' put: [ :gameState |
+            | message |
+                (if raft is built) ifTrue: [
+                    message := #('Why don't you want to stay with me? I would give you everything you need.'
+                        'But I see that nothing can deter you from leaving me. If you truly wish to leave, the correct order to build the raft is cloth first, then rope, then logs, then wood.').
+                ] ifFalse: [
+                    message := #('Why hurry to leave? This island is paradise, and I will care for you here forever.'
+                        'Stay here with me, and you will never want for anything. However if you really want to leave this place'
+                        'To return to the life you truly seek, you must craft a raft that can withstand Poseidons storms'
+                        'Gather the resources of the island: wood, logs, rope, and cloth. Only then will you be able to return home.'
+                    ).
+            ].
+            message
+        ].
+    ] "
 ]
