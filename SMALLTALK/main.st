@@ -81,6 +81,7 @@ Object subclass: Game [
         Transcript show: 'In Act III, you can additionally use:'; cr.
         Transcript show: '- gather <material> : To gather essential materials for crafting.'; cr.
         Transcript show: '- build <material> : To construct a raft or other items needed to progress.'; cr.
+        Transcript show: '- escape : To escape if you have completed the raft.'; cr.
         Transcript show: ''; cr.
         Transcript show: 'Good luck on your journey, brave Odysseus!'; cr.
         Transcript show: yellow, 'Type "start" to play the game or type "finish" anytime to close it.'; cr.
@@ -182,6 +183,28 @@ Object subclass: Game [
 
             cmd = 'finish' ifTrue: [
                 gameState setIsGameOver: true.
+                isUnknown := false
+            ].
+
+            (cmd startsWith: 'gather') ifTrue: [
+                | materialName |
+                materialName := cmd copyFrom: 8 to: cmd size.
+                Transcript show: 'Gathering material: ', materialName; cr. "Diagnostyka"
+                
+                "Wywołanie metody gather"
+                gameState gather: materialName.
+                isUnknown := false.
+            ].
+
+            (cmd startsWith: 'build') ifTrue: [
+                | materialName |
+                materialName := cmd copyFrom: 7 to: cmd size.  "Extract material name from the command"
+                gameState build: materialName.  "Call the build: method"
+                isUnknown := false.
+            ].
+
+            cmd = 'escape' ifTrue: [
+                gameState escape.
                 isUnknown := false
             ].
 
