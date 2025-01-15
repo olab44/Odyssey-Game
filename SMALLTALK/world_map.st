@@ -106,10 +106,10 @@ Object subclass: WorldMap [
         | location |
         location := Sea new.
         location name: 'open_sea' description: #('Open sea stretches in all directions, no land in sight.').
-        
+
         location onEnterFunc: [ :gameState |
             | description |
-            
+
             (gameState aeolusAccess) ifTrue: [
                 location addDirection: 'disembark' toLocation: 'aeolus_island'.
 
@@ -134,7 +134,8 @@ Object subclass: WorldMap [
 
         location addDirection: 'north' toLocation: 'ithaca_sea'.
         location addDirection: 'west' toLocation: 'lotus_sea'.
-        
+        location addDirection: 'act_iii' toLocation: 'calypso_island'.
+
         ^location
     ]
 
@@ -517,34 +518,32 @@ Object subclass: WorldMap [
     WorldMap class >> createCalypsoIsland [
         | location |
         location := Land new.
-        location name: 'calypso_island' description: #(
-            'You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen.'
-            'The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground.'
-            'Your crew is no loger alive, your ship is gone. You are left all alone'
-            'When you wake up, the first thing you see is a woman, a goddess, who introduces herself as Calypso.'
-            'She is beautiful, but you want to return home. You can try asking her how to leave.'
-        ).
+        location name: 'calypso_island'
+            description: #(
+                'You stand on the shores of an island. It is breathtaking but empty, nobody is to be seen.'
+                'The only sound is wind blowing through the trees. You are exhausted from all your travels and collapse on the ground.'
+                'Your crew is no longer alive, your ship is gone. You are left all alone.'
+                'When you wake up, the first thing you see is a woman, a goddess, who introduces herself as Calypso.'
+                'She is beautiful, but you want to return home. You can try asking her how to leave.'
+            ).
         ^location
     ]
 
     WorldMap class >> createIthaca [
         | location |
         location := Land new.
-        location name: 'ithaca' description: #(
-            'At last, you set foot on Ithaca, your homeland.'
-            'After all the trials, you have made it home, where every person on the street talks aboutfter all the trials, you have made it home, where every person on the street talks about'
-            'the queens challenge'
-            'But that is a story for another day.'
-        ).
+        location name: 'ithaca'
+            description: #('no siema').
         location onEnterFunc: [ :gameState |
-            #(
-                'After years lost at sea, battles fought, and gods defied, you have finally reached Ithaca.'
-                'You have proven that courage and loyalty can overcome even the wrath of gods.'
-                'Welcome home, Odysseus.'
-            ).
             gameState setIsGameOver: true.
+            gameState setCurrentLocation: location.
+            Transcript show: 'At last, you set foot on Ithaca, your homeland.'; cr.
+            Transcript show: 'After all the trials, you`ve made it home, where every person on the street talks about the queen`s challenge.'; cr.
+            Transcript show: 'But that`s a story for another day.'; cr.
+            Transcript show: 'After years lost at sea, battles fought, and gods defied, you`ve finally reached Ithaca.'; cr.
+            Transcript show: 'You`ve proven that courage and loyalty can overcome even the wrath of gods.'; cr.
+            Transcript show: 'Welcome home, Odysseus.'; cr.
         ].
-
         ^location
     ]
 ]
