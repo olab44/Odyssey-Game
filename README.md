@@ -8,7 +8,7 @@
 # Gra
 
 # PROLOG
-Po wejściu do foldru PROLOG należy wykonać polecenie:
+Po wejściu do folderu PROLOG należy wykonać polecenie:
 
     $ swipl -g true odyssey.pl
 
@@ -16,7 +16,7 @@ Po wejściu do foldru PROLOG należy wykonać polecenie:
 - sumaryczny rozmiar plików: 49KB
 
 # HASKELL
-Po wejściu do foldru PROLOG należy wykonać polecenie:
+Po wejściu do folderu HASKELL należy wykonać polecenie:
 
     $ ./odyssey
 
@@ -28,3 +28,10 @@ W przypadku braku tego pliku należy urchomić skrypt budujący:
 - sumaryczny rozmiar plików: 78,25KB
 
 # SMALLTALK
+Po wejściu di folderu SMALLTALK należy wykonać polecenie:
+
+    $ ./odyssey.sh
+
+-
+- liczba linii kodu: 1670
+- sumaryczny rozmiar plików: 80KB
