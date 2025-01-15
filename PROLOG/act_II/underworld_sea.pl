@@ -39,14 +39,14 @@ start_ferry_puzzle :-
 ferry(Item) :-
     you_are_at(underworld),
     on_bank1(charon),
-    (Item \= none -> 
+    (Item \= none ->
         (on_bank1(Item) ->
             move_across(Item),
             retract(on_bank1(charon)), assert(on_bank2(charon)),
             write(Item), write(" has been ferried across.\n");
         write("Cannot ferry "), write(Item), write(". Check if it's on the correct side of the river.\n")
         );
-    retract(on_bank1(charon)), 
+    retract(on_bank1(charon)),
     assert(on_bank2(charon)),
     write("Charon crosses without taking anything.\n")
     ),
@@ -70,7 +70,7 @@ return(Item) :-
 
 move_across(Item) :-
     (Item \= none ->
-        (on_bank1(Item) -> retract(on_bank1(Item)), assert(on_bank2(Item)); 
+        (on_bank1(Item) -> retract(on_bank1(Item)), assert(on_bank2(Item));
          retract(on_bank2(Item)), assert(on_bank1(Item)));
      true).
 
@@ -106,8 +106,8 @@ talk(tiresias) :-
     write("I see your future, Odysseus. You may reach Ithaca, but the path will be fraught with hardships.\n"),
     write("The island of Helios and its sacred cattle will be your doom if you dare approach them.\n"),
     write("The fates have already sealed the tragic death of your mother, which you have yet to learn.\n"),
-	write("The ferryman urges you to hurry, though he offers you the chance to "), 
-	ansi_format([fg(yellow)], "talk", []), 
+	write("The ferryman urges you to hurry, though he offers you the chance to "),
+	ansi_format([fg(yellow)], "talk", []),
 	write(" to one of three shades: your mother, Achilles, or Agamemnon.\nBut choose wisely, for you can only speak with one of them.\n"),
 	retractall(visited_underworld(_)),
     assert(visited_underworld(true)).
@@ -120,9 +120,9 @@ talk(mother) :-
     write("The days of our separation broke my heart. I wish I could have seen you return to Ithaca.\n"),
     write("With a soft sigh, she hands you a charm—a Charybdis Lure, a precious item that may one day save you from the whirlpool.\n"),
     assert(holding(charybdis_lure)),
-    (   longer_stay(false) -> 
+    (   longer_stay(false) ->
         write("Now you must return to your ship. Further conversations are no longer possible.\n"),
-        retractall(access_to_underworld(_)), assert(access_to_underworld(false)), 
+        retractall(access_to_underworld(_)), assert(access_to_underworld(false)),
         retractall(you_are_at(_)), assert(you_are_at(underworld_sea)), retract(disembarked)
     ;   true
     ),
@@ -134,9 +134,9 @@ talk(agamemnon) :-
     write("'I was betrayed by my wife, Clytemnestra, and murdered upon my return to Mycenae. But you, Odysseus, will fare better, I hope.'\n"),
     write("He offers you a map of the seas ahead—knowledge of the islands that await you in Act II.\n"),
     write("Type "), ansi_format([fg(yellow)], "show_map", []), write(" to look at it.\n"),
-    (   longer_stay(false) -> 
+    (   longer_stay(false) ->
         write("Now you must return to your ship. Further conversations are no longer possible.\n"),
-        retractall(access_to_underworld(_)), assert(access_to_underworld(false)), 
+        retractall(access_to_underworld(_)), assert(access_to_underworld(false)),
         retractall(you_are_at(_)), assert(you_are_at(underworld_sea)), retract(disembarked)
     ;   true
     ),
