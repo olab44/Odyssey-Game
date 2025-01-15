@@ -32,6 +32,5 @@ Po wejściu di folderu SMALLTALK należy wykonać polecenie:
 
     $ ./odyssey.sh
 
--
 - liczba linii kodu: 1670
 - sumaryczny rozmiar plików: 80KB
